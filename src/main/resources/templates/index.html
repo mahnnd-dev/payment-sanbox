@@ -16,8 +16,8 @@
     <main id="app">
         <!-- Nội dung sẽ được app.js load vào -->
         <div th:replace="~{payment_methods :: payment_methods}"></div>
-        <!--        <div id="cardForm" class="card-form"></div>-->
-        <div th:replace="~{payment_form :: payment_form}"></div>
+        <div id="cardForm" class="card-form"></div>
+<!--        <div id="cardForm" th:replace="~{payment_form :: payment_form}"></div>-->
     </main>
     <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>

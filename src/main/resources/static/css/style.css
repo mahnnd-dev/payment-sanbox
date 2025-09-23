@@ -214,13 +214,14 @@ body {
 
 /* Styles for the 2-column payment form page */
 .card-form {
-    display: none;
+    display: none;       /* Mặc định ẩn */
     padding: 20px;
 }
 
 .card-form.active {
-    display: block;
+    display: block;      /* Khi có class active thì hiện */
 }
+
 
 .payment-details-layout {
     display: flex;

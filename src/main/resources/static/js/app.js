@@ -156,8 +156,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // ===================== UI CONTROL =====================
     function showPaymentMethods() {
-        paymentMethodsSection.classList.remove('hidden');
-        cardForm.classList.add('hidden');
+        paymentMethodsSection.classList.remove('hidden');  // vẫn dùng hidden cho section này
+        cardForm.classList.remove('active');              // form ẩn đi
         const domesticCard = document.querySelector('.payment-method[data-method="domestic_card"]');
         if (domesticCard) {
             domesticCard.classList.remove('expanded', 'selected');
@@ -172,7 +172,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         }
         paymentMethodsSection.classList.add('hidden');
-        cardForm.classList.remove('hidden');
         cardForm.classList.add('active');
     }
 
