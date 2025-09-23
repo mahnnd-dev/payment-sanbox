@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VNPay - Cổng thanh toán</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <script th:src="@{/lib/jquery/jquery-3.7.1.min.js}"></script>
     <link rel="stylesheet" th:href="@{/lib/toastr/toastr.min.css}">
 </head>
 <body>
@@ -16,12 +15,12 @@
     <main id="app">
         <!-- Nội dung sẽ được app.js load vào -->
         <div th:replace="~{payment_methods :: payment_methods}"></div>
-        <div id="cardForm" class="card-form"></div>
-<!--        <div id="cardForm" th:replace="~{payment_form :: payment_form}"></div>-->
+        <div th:replace="~{payment_form :: payment_form}"></div>
     </main>
     <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>
 </div>
+<script th:src="@{/lib/jquery/jquery-3.7.1.min.js}"></script>
 <!-- toastr -->
 <script th:src="@{/lib/toastr/toastr.min.js}"></script>
 <!-- sweetalert2 (nếu cần) -->

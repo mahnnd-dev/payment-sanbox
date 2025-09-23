@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', async function () {
+// app.js
+document.addEventListener('DOMContentLoaded', function () {
     const banks = [
         {code: 'ABBANK', name: 'ABBANK', logo: '/images/banks/abbank.svg'},
         {code: 'ACB', name: 'ACB', logo: '/images/banks/acb.svg'},
@@ -31,29 +32,38 @@ document.addEventListener('DOMContentLoaded', async function () {
     ];
 
     let selectedBank = null;
+    let orderInfo = {}; // Lưu thông tin đơn hàng
 
     const paymentMethodsSection = document.getElementById('paymentMethodsSection');
     const cardForm = document.getElementById('cardForm');
 
-    // Load templates từ server
-    const methodsResponse = await fetch('/payment/methods');
-    paymentMethodsSection.innerHTML = await methodsResponse.text();
-
-    const formResponse = await fetch('/payment/form');
-    cardForm.innerHTML = await formResponse.text();
-
-    init();
-
-    // ===================== INIT =====================
     function init() {
+        loadOrderInfo(); // Load thông tin đơn hàng từ hidden fields
         setupPaymentMethods();
         setupBankGrid();
         setupCardForm();
         setupNavigation();
-        showPaymentMethods();
+        showPaymentMethods(); // Start at the first step
     }
 
-    // ===================== PAYMENT METHODS =====================
+    // Load thông tin đơn hàng từ hidden fields hoặc từ server
+    function loadOrderInfo() {
+        const orderIdElement = document.getElementById('orderId');
+        const amountElement = document.getElementById('amount');
+        const supplierElement = document.getElementById('supplierName');
+
+        if (orderIdElement && amountElement && supplierElement) {
+            orderInfo = {
+                orderId: orderIdElement.value || '#000000',
+                amount: amountElement.value || '0 VND',
+                supplier: supplierElement.value || 'NEO'
+            };
+        }
+
+        // Log để debug
+        console.log('Order Info Loaded:', orderInfo);
+    }
+
     function setupPaymentMethods() {
         document.querySelectorAll('.payment-method').forEach(method => {
             const header = method.querySelector('.payment-method-header');
@@ -63,24 +73,28 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const methodType = method.dataset.method;
 
                 if (methodType === 'domestic_card') {
-                    // Accordion toggle
-                    document.querySelectorAll('.payment-method.expanded').forEach(m => {
-                        if (m !== method) m.classList.remove('expanded', 'selected');
+                    // Đóng tất cả các accordion khác
+                    document.querySelectorAll('.payment-method.expanded').forEach(expandedMethod => {
+                        if (expandedMethod !== method) {
+                            expandedMethod.classList.remove('expanded');
+                            expandedMethod.classList.remove('selected');
+                        }
                     });
+                    // Mở hoặc đóng accordion hiện tại
                     method.classList.toggle('expanded');
                     method.classList.toggle('selected');
                 } else {
-                    toastr.warning(
-                        `Chức năng "${method.querySelector('.payment-method-text').innerText.trim()}" đang phát triển.`
-                    );
+                    // Logic cho các phương thức khác
+                    toastr.info(`Chức năng "${method.querySelector('.payment-method-text').innerText.trim()}" đang được phát triển.`);
                 }
             });
         });
     }
 
-    // ===================== BANK GRID =====================
     function setupBankGrid() {
         const domesticBankGrid = document.getElementById('domesticBankGrid');
+        if (!domesticBankGrid) return;
+
         domesticBankGrid.innerHTML = '';
         banks.forEach(bank => {
             const bankItem = document.createElement('div');
@@ -88,98 +102,159 @@ document.addEventListener('DOMContentLoaded', async function () {
             bankItem.dataset.bankCode = bank.code;
             bankItem.innerHTML = `<img class="bank-logo" src="${bank.logo}" alt="${bank.name}">`;
 
-            bankItem.addEventListener('click', (e) => {
-                e.stopPropagation();
+            bankItem.addEventListener('click', (event) => {
+                event.stopPropagation();
                 selectBank(bank);
             });
-
             domesticBankGrid.appendChild(bankItem);
         });
     }
 
     function selectBank(bank) {
         selectedBank = bank;
+        console.log('Selected Bank:', selectedBank);
         showCardForm();
     }
 
-    // ===================== CARD FORM =====================
     function setupCardForm() {
-        const form = document.getElementById('cardPaymentForm');
-        if (!form) return;
+        const cardPaymentForm = document.getElementById('cardPaymentForm');
+        if (!cardPaymentForm) return;
 
-        form.addEventListener('submit', e => {
+        cardPaymentForm.addEventListener('submit', function(e) {
             e.preventDefault();
+
             const formData = {
                 bank: selectedBank?.name,
-                cardNumber: document.getElementById('cardNumber').value,
-                cardHolder: document.getElementById('cardHolder').value,
+                cardNumber: document.getElementById('cardNumber')?.value,
+                cardHolder: document.getElementById('cardHolder')?.value,
+                cardDate: document.getElementById('cardDate')?.value,
+                orderInfo: orderInfo // Bao gồm thông tin đơn hàng
             };
 
-            toastr.info('Đang xử lý thanh toán...');
+            console.log('Payment Data:', formData);
 
-            // Giả lập call API 3s
-            setTimeout(() => {
-                toastr.success(`Thanh toán thành công qua ${formData.bank}!`);
-                showPaymentMethods();
-            }, 3000);
+            // Validate form
+            if (!formData.cardNumber || !formData.cardHolder || !formData.cardDate) {
+                toastr.error('Vui lòng nhập đầy đủ thông tin thẻ.');
+                return;
+            }
+
+            // Gửi request thanh toán (có thể gọi API ở đây)
+            processPayment(formData);
         });
+
+        // Format card number input
+        const cardNumberInput = document.getElementById('cardNumber');
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+                e.target.value = value;
+            });
+        }
+
+        // Format card date input
+        const cardDateInput = document.getElementById('cardDate');
+        if (cardDateInput) {
+            cardDateInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+            });
+        }
     }
 
-    // ===================== NAVIGATION =====================
+    function processPayment(formData) {
+        // Hiển thị loading
+        const submitBtn = document.querySelector('.submit-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Đang xử lý...';
+        submitBtn.disabled = true;
+
+        // Simulate API call
+        setTimeout(() => {
+            toastr.success('Thanh toán đang được xử lý!');
+            console.log('Payment processed:', formData);
+
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+
+            // Có thể redirect hoặc show kết quả ở đây
+        }, 2000);
+    }
+
     function setupNavigation() {
-        const backBtn = document.getElementById('backToMethods');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                showPaymentMethods();
-                toastr.info('Đã quay lại màn hình chọn phương thức');
-            });
+        const backToMethodsBtn = document.getElementById('backToMethods');
+        if (backToMethodsBtn) {
+            backToMethodsBtn.addEventListener('click', showPaymentMethods);
         }
 
         const cancelBtn = document.querySelector('.cancel-btn');
         if (cancelBtn) {
             cancelBtn.addEventListener('click', () => {
-                Swal.fire({
-                    title: 'Bạn có chắc chắn muốn hủy giao dịch?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Có, hủy ngay',
-                    cancelButtonText: 'Không'
-                }).then((result) => {
-                    if (result.isConfirmed) {
+                // Sử dụng SweetAlert2 cho thông báo chuyên nghiệp
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Xác nhận hủy giao dịch',
+                        text: 'Bạn có chắc chắn muốn hủy giao dịch này không?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Hủy giao dịch',
+                        cancelButtonText: 'Tiếp tục thanh toán'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            toastr.info('Giao dịch đã được hủy');
+                            showPaymentMethods();
+                        }
+                    });
+                } else {
+                    // Fallback nếu SweetAlert2 không có
+                    if (confirm('Bạn có chắc chắn muốn hủy giao dịch?')) {
+                        toastr.info('Giao dịch đã được hủy');
                         showPaymentMethods();
-                        toastr.warning('Giao dịch đã bị hủy');
                     }
-                });
+                }
             });
         }
     }
 
-    // ===================== UI CONTROL =====================
     function showPaymentMethods() {
-        paymentMethodsSection.classList.remove('hidden');  // vẫn dùng hidden cho section này
-        cardForm.classList.remove('active');              // form ẩn đi
+        if (paymentMethodsSection) {
+            paymentMethodsSection.classList.remove('hidden');
+        }
+        if (cardForm) {
+            cardForm.classList.remove('active');
+        }
+
+        // Đảm bảo accordion được đóng lại khi quay về
         const domesticCard = document.querySelector('.payment-method[data-method="domestic_card"]');
         if (domesticCard) {
-            domesticCard.classList.remove('expanded', 'selected');
+            domesticCard.classList.remove('expanded');
+            domesticCard.classList.remove('selected');
         }
     }
 
     function showCardForm() {
         if (selectedBank) {
-            const bankNameEl = document.getElementById('selectedBankName');
-            if (bankNameEl) {
-                bankNameEl.textContent = selectedBank.name;
+            const selectedBankNameEl = document.getElementById('selectedBankName');
+            if (selectedBankNameEl) {
+                selectedBankNameEl.textContent = selectedBank.name;
             }
         }
-        paymentMethodsSection.classList.add('hidden');
-        cardForm.classList.add('active');
+
+        if (paymentMethodsSection) {
+            paymentMethodsSection.classList.add('hidden');
+        }
+        if (cardForm) {
+            cardForm.classList.add('active');
+        }
     }
 
-    // ===================== TOASTR CONFIG =====================
-    toastr.options = {
-        "closeButton": true,
-        "progressBar": true,
-        "positionClass": "toast-top-right",
-        "timeOut": "3000"
-    };
+    // Khởi tạo ứng dụng
+    init();
 });

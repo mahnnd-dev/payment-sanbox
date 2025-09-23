@@ -16,20 +16,35 @@ public class PaymentViewController {
     // Trang chính (index.html)
     @GetMapping("/payment")
     public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) {
-        // request lúc này đã được Spring bind từ query param vào
+        // Log để debug
+        log.info("Payment request received: {}", request);
+
+        // Giả lập dữ liệu từ request hoặc query param
+        model.addAttribute("neoPaymentRequest", request);
         model.addAttribute("supplierName", "manhnd");
-        return "index"; // Thymeleaf template
+
+        // Có thể thêm các thông tin khác nếu cần
+        // model.addAttribute("transactionFee", "0");
+        // model.addAttribute("totalAmount", request.getNeoAmount());
+
+        return "index"; // Template chính
     }
 
     // Trả về danh sách phương thức thanh toán (fragment)
     @GetMapping("/payment/methods")
-    public String paymentMethods() {
+    public String paymentMethods(Model model, @ModelAttribute NeoPaymentRequest request) {
+        // Đảm bảo dữ liệu được truyền vào fragment
+        model.addAttribute("neoPaymentRequest", request);
+        model.addAttribute("supplierName", "manhnd");
         return "payment_methods"; // resources/templates/payment_methods.html
     }
 
     // Trả về form thanh toán (fragment)
     @GetMapping("/payment/form")
-    public String paymentForm() {
+    public String paymentForm(Model model, @ModelAttribute NeoPaymentRequest request) {
+        // Đảm bảo dữ liệu được truyền vào fragment
+        model.addAttribute("neoPaymentRequest", request);
+        model.addAttribute("supplierName", "manhnd");
         return "payment_form";
     }
 
