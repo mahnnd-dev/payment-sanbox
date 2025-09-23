@@ -1,0 +1,400 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.payment-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto;
+    overflow: hidden;
+}
+
+.header {
+    background: white;
+    padding: 20px;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.vnpay-logo {
+    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.logo-placeholder {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 18px;
+    display: inline-block;
+    letter-spacing: 1px;
+}
+
+.main-content {
+    min-height: 400px;
+}
+
+.payment-methods-section {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1976d2;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.payment-method {
+    padding: 16px 20px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    overflow: hidden;
+}
+
+.payment-method-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.payment-method:hover {
+    border-color: #1976d2;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.payment-method.selected {
+    border-color: #1976d2;
+    background: #f3f8ff;
+}
+
+.payment-method-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.payment-method-text {
+    font-size: 16px;
+    color: #333;
+}
+
+.payment-method-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.card-icon {
+    background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+    color: white;
+}
+
+.radio-button {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    position: relative;
+}
+
+.payment-method.selected .radio-button {
+    border-color: #1976d2;
+}
+
+.payment-method.selected .radio-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #1976d2;
+    border-radius: 50%;
+}
+
+/* ===== NEW STYLES for Accordion Bank List ===== */
+.bank-grid-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    padding-top: 0;
+}
+
+/* Khi .payment-method có class .expanded, container bên trong sẽ hiện ra */
+.payment-method.expanded .bank-grid-container {
+    max-height: 1000px; /* Một giá trị đủ lớn để chứa hết các bank */
+    padding-top: 20px;
+}
+
+/* ===== END NEW STYLES ===== */
+
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.bank-item {
+    aspect-ratio: 1;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.bank-item:hover {
+    border-color: #1976d2;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+.bank-logo {
+    width: 60%;  /* Giữ nguyên từ code cũ */
+    height: 60%; /* Giữ nguyên từ code cũ */
+    object-fit: contain; /* Đảm bảo SVG không bị méo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #666; /* Fallback nếu SVG không load, hiển thị text */
+    font-size: 12px; /* Fallback text size */
+}
+
+/* Thêm hover effect cho bank-item để nổi bật hơn */
+.bank-item:hover .bank-logo {
+    transform: scale(1.1); /* Phóng to nhẹ khi hover */
+    transition: transform 0.2s ease;
+}
+
+/* Nếu SVG có màu, bạn có thể filter để matching theme */
+.bank-logo img {
+    filter: brightness(1.1); /* Tùy chỉnh nếu cần */
+}
+
+/* Styles for the 2-column payment form page */
+.card-form {
+    display: none;
+    padding: 20px;
+}
+
+.card-form.active {
+    display: block;
+}
+
+.payment-details-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.order-summary-column {
+    flex: 0 0 320px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 25px;
+    border: 1px solid #e5e5e5;
+    height: fit-content;
+}
+
+.payment-form-column {
+    flex: 1;
+}
+
+.order-summary-column h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.info-label {
+    color: #666;
+}
+
+.info-value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+}
+
+.amount {
+    color: #1976d2;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.bank-payment-title {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn {
+    width: 100%;
+    padding: 16px;
+    background: white;
+    color: #666;
+    border: 2px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    padding: 8px 0;
+}
+
+.contact-section {
+    background: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    align-items: center;
+    border-top: 1px solid #e5e5e5;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1976d2;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+    }
+
+    .payment-container {
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .payment-details-layout {
+        flex-direction: column;
+    }
+
+    .order-summary-column {
+        flex: 0 0 auto;
+        margin-bottom: 20px;
+    }
+
+    .bank-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.hidden {
+    display: none !important;
+}

@@ -1,0 +1,67 @@
+<!-- templates/payment_form.html -->
+<div th:fragment="payment_form" id="cardForm">
+    <div class="card-form">
+        <button class="back-button" id="backToMethods">
+            ← Quay lại
+        </button>
+
+        <div class="payment-details-layout">
+            <!-- Cột thông tin đơn hàng -->
+            <div class="order-summary-column">
+                <h3>Thông tin đơn hàng</h3>
+                <div class="info-row">
+                    <span class="info-label">Nhà cung cấp</span>
+                    <!--                    <span class="info-value" th:text="${supplierName}">NEO</span>-->
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mã đơn hàng</span>
+                    <span class="info-value">#904cb1a5</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Giá trị đơn hàng</span>
+                    <!--                    <span class="info-value" th:text="${neoPaymentRequest.neoAmount}">VND</span>-->
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phí giao dịch</span>
+                    <span class="info-value">Miễn phí</span>
+                </div>
+
+                <hr style="border: none; border-top: 1px dashed #ccc; margin: 15px 0;">
+
+                <div class="info-row">
+                    <span class="info-label" style="font-weight: bold;">Số tiền thanh toán</span>
+                    <span class="info-value amount">100.000 VND</span>
+                </div>
+            </div>
+
+            <!-- Cột form thanh toán -->
+            <div class="payment-form-column">
+                <h3 class="bank-payment-title">
+                    Thanh toán qua <span id="selectedBankName">Vietcombank</span>
+                </h3>
+
+                <form id="cardPaymentForm">
+                    <div class="form-group">
+                        <label for="cardNumber">Số thẻ</label>
+                        <input type="text" id="cardNumber" placeholder="Nhập số thẻ" maxlength="19" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardHolder">Tên chủ thẻ</label>
+                        <input type="text" id="cardHolder" placeholder="Tên in trên thẻ, không dấu">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardDate">Ngày phát hành</label>
+                        <input type="text" id="cardDate" placeholder="MM/YY">
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="submit-btn">Thanh toán</button>
+                        <button type="button" class="cancel-btn">Hủy giao dịch</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

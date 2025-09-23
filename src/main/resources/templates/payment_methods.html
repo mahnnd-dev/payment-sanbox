@@ -1,0 +1,45 @@
+<div th:fragment="payment_methods">
+    <div class="payment-methods-section" id="paymentMethodsSection">
+        <h2 class="section-title">Chọn phương thức thanh toán</h2>
+        <div class="payment-method" data-method="vnpay_qr">
+            <div class="payment-method-header">
+                <div class="payment-method-content">
+                    <div class="payment-method-icon card-icon">📱</div>
+                    <div class="payment-method-text">Ứng dụng thanh toán hỗ trợ NEOPAYQR</div>
+                </div>
+                <div class="radio-button"></div>
+            </div>
+        </div>
+        <div class="payment-method" data-method="domestic_card">
+            <div class="payment-method-header">
+                <div class="payment-method-content">
+                    <div class="payment-method-icon card-icon">💳</div>
+                    <div class="payment-method-text">Thẻ nội địa và tài khoản ngân hàng</div>
+                </div>
+                <div class="radio-button"></div>
+            </div>
+            <div class="bank-grid-container">
+                <div class="bank-grid" id="domesticBankGrid">
+                </div>
+            </div>
+        </div>
+        <div class="payment-method" data-method="paycard">
+            <div class="payment-method-header">
+                <div class="payment-method-content">
+                    <div class="payment-method-icon card-icon">📱</div>
+                    <div class="payment-method-text">Thẻ thanh toán quốc tế</div>
+                </div>
+                <div class="radio-button"></div>
+            </div>
+        </div>
+        <div class="payment-method" data-method="payapp">
+            <div class="payment-method-header">
+                <div class="payment-method-content">
+                    <div class="payment-method-icon card-icon">📱</div>
+                    <div class="payment-method-text">App NEOPAY</div>
+                </div>
+                <div class="radio-button"></div>
+            </div>
+        </div>
+    </div>
+</div>
