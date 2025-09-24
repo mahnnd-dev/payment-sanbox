@@ -13,20 +13,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class PaymentViewController {
 
+    private final String supplierName = "https://neo.vn";
+
     // Trang chính (index.html)
     @GetMapping("/payment")
     public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) {
         // Log để debug
         log.info("Payment request received: {}", request);
-
         // Giả lập dữ liệu từ request hoặc query param
         model.addAttribute("neoPaymentRequest", request);
-        model.addAttribute("supplierName", "manhnd");
-
-        // Có thể thêm các thông tin khác nếu cần
-        // model.addAttribute("transactionFee", "0");
-        // model.addAttribute("totalAmount", request.getNeoAmount());
-
+        model.addAttribute("supplierName", supplierName);
         return "index"; // Template chính
     }
 
@@ -35,7 +31,7 @@ public class PaymentViewController {
     public String paymentMethods(Model model, @ModelAttribute NeoPaymentRequest request) {
         // Đảm bảo dữ liệu được truyền vào fragment
         model.addAttribute("neoPaymentRequest", request);
-        model.addAttribute("supplierName", "manhnd");
+        model.addAttribute("supplierName", supplierName);
         return "payment_methods"; // resources/templates/payment_methods.html
     }
 
@@ -44,7 +40,7 @@ public class PaymentViewController {
     public String paymentForm(Model model, @ModelAttribute NeoPaymentRequest request) {
         // Đảm bảo dữ liệu được truyền vào fragment
         model.addAttribute("neoPaymentRequest", request);
-        model.addAttribute("supplierName", "manhnd");
+        model.addAttribute("supplierName", supplierName);
         return "payment_form";
     }
 
