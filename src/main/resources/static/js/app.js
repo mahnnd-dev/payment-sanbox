@@ -49,26 +49,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load thông tin đơn hàng từ hidden fields hoặc từ server
     function loadOrderInfo() {
-        const orderIdElement = document.getElementById('orderId');
-        const amountElement = document.getElementById('amount');
-        const supplierElement = document.getElementById('supplierName');
-        const orderTypeElement = document.getElementById('orderType');
-        const txnRefElement = document.getElementById('txnRef');
-        const tmnCodeElement = document.getElementById('tmnCode');
-        const returnUrlElement = document.getElementById('returnUrl');
-        const orderInfor = document.getElementById('orderInfo');
+        // {
+        //     "neo_TxnRef": "df67a512-5ab6-408c-8240-2490d82b5f6f",
+        //     "neo_TmnCode": "A21558QU",
+        //     "neo_OrderInfo": "233|dsdsd|1|1|18|1|1|https://votephi.voting.vn/detail/17147",
+        //     "neo_Amount": "10000000",
+        //     "neo_IpAddr": "172.30.32.1",
+        //     "neo_Locale": "vi-VN",
+        //     "neo_OrderType": "billpayment",
+        //     "neo_CurrCode": "VND",
+        //     "neo_CreateDate": "20250925085806",
+        //     "neo_ExpireDate": "20250925091306",
+        //     "neo_Command": "pay",
+        //     "neo_ReturnUrl": "http://localhost:9001/api/neo/call-back",
+        //     "neo_SecureHash": "bbfe977e0f04b69302238a0874afbb0920a3d0e68c8c98bfee67572c855cabc75374da2b68c7bf129d4a6564ae2586d3813119ca9427afd85b0c0349b4fa859e",
+        //     "neo_Version": "2.1.0"
+        // }
+        const request = JSON.parse(document.getElementById("paymentData").dataset.request);
+        console.log(request);
+        // nhà cung cấp
+        const tmnCodeElement = request.neo_TmnCode;
+        // mã đơn hàng
+        const txnRefElement = request.neo_TxnRef;
+        // giá trị đơn hàng
+        const amountElement = request.neo_Amount;
+        // số tiền thanh toán
+        const amountPayElement = request.neo_Amount;
+        // định dạng số tiền
+        const formatted = new Intl.NumberFormat(request.neo_Locale, {
+            style: 'currency',
+            currency: request.neo_CurrCode
+        }).format(amountElement);
+        // gán giá trị vào id
+        document.getElementById("tmnCode").textContent = "#" + tmnCodeElement;
+        document.getElementById("txnRef").textContent = "#" + txnRefElement;
+        document.getElementById("amount").textContent = "#" + formatted;
+        document.getElementById("amountPay").textContent = "#" + formatted;
 
+        const orderInfoElement = request.neo_OrderInfo;
+        const returnUrlElement = request.neo_ReturnUrl;
 
-        if (orderIdElement || amountElement || supplierElement) {
+        if (txnRefElement || amountElement || tmnCodeElement) {
             orderInfo = {
-                orderId: orderIdElement?.value || '#000000',
-                txnRef: txnRefElement?.value || '',
-                amount: amountElement?.value || '0 VND',
-                supplier: supplierElement?.value || 'NEO',
-                returnUrl: returnUrlElement?.value || '',
-                orderType: orderTypeElement?.value || 'payment',
-                tmnCode: tmnCodeElement?.value || '',
-                orderInfor: orderInfor?.value || ''
+                tmnCode: tmnCodeElement,
+                txnRef: txnRefElement,
+                amount: amountElement,
+                amountPay: amountPayElement,
+                orderInfo: orderInfoElement,
+                returnUrl: orderInfoElement
             };
         }
 
@@ -142,15 +170,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 cardDate: document.getElementById('cardDate')?.value,
                 orderInfo: orderInfo // Bao gồm thông tin đơn hàng
             };
-
             console.log('Payment Data:', formData);
-
             // Validate form
             if (!formData.cardNumber || !formData.cardHolder || !formData.cardDate) {
                 toastr.error('Vui lòng nhập đầy đủ thông tin thẻ.');
                 return;
             }
-
             // Gửi request thanh toán (có thể gọi API ở đây)
             processPayment(formData);
         });
@@ -219,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function executePayment(formData, submitBtn, originalText) {
+        console.log("#executePayment ", formData);
         // Set loading state
         submitBtn.textContent = 'Đang xử lý...';
         submitBtn.disabled = true;
@@ -235,14 +261,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 cardNumber: formData.cardNumber.replace(/\s/g, ''), // Bỏ space
                 cardHolder: formData.cardHolder,
                 cardDate: formData.cardDate,
-                txnRef: formData.orderInfo.txnRef,
-                orderId: formData.orderInfo.orderId,
-                orderInfo: formData.orderInfo.orderId,
-                amount: formData.orderInfo.amount,
-                returnUrl: formData.orderInfo.returnUrl,
-                orderType: formData.orderInfo.orderType,
                 tmnCode: formData.orderInfo.tmnCode,
-                orderInfor: formData.orderInfo.orderInfor
+                txnRef: formData.orderInfo.txnRef,
+                amount: formData.orderInfo.amount,
+                amountPay: formData.orderInfo.amountPay,
+                orderInfo: formData.orderInfo.orderInfo,
+                returnUrl: formData.orderInfo.returnUrl
             })
         })
             .then(response => {

@@ -1,9 +1,10 @@
 package com.neo.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neo.modal.IPNRequest;
 import com.neo.modal.PaymentProcessRequest;
 import com.neo.modal.PaymentResult;
-import com.neo.service.impl.IPNService;
+import com.neo.service.IPNService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ public class PaymentApiController {
     private String secretKey;
 
     private final IPNService ipnService;
+    private final ObjectMapper objectMapper;
 
     @PostMapping("/process")
     public ResponseEntity<Map<String, Object>> processPayment(@RequestBody PaymentProcessRequest request) {
@@ -137,6 +139,7 @@ public class PaymentApiController {
     }
 
     private String buildRedirectUrl(PaymentProcessRequest request, PaymentResult paymentResult, String responseCode) {
+        log.info("{}", request);
         if (request.getReturnUrl() == null || request.getReturnUrl().isEmpty()) {
             return "/payment/result?status=" + (responseCode.equals("00") ? "SUCCESS" : "FAILED");
         }
@@ -152,7 +155,7 @@ public class PaymentApiController {
         params.put("Neo_BankTranNo", paymentResult.getBankTranNo());
         params.put("Neo_CardType", paymentResult.getCardType());
         params.put("Neo_PayDate", paymentResult.getPayDate());
-        params.put("Neo_OrderInfo", request.getOrderId()); // Simplified
+        params.put("Neo_OrderInfo", request.getTxnRef()); // Simplified
         params.put("Neo_TransactionNo", paymentResult.getTransactionId());
         params.put("Neo_ResponseCode", responseCode);
         params.put("Neo_TransactionStatus", responseCode);
@@ -186,7 +189,7 @@ public class PaymentApiController {
                     paymentResult.getBankTranNo(),
                     paymentResult.getCardType(),
                     paymentResult.getPayDate(),
-                    request.getOrderInfor(),
+                    request.getOrderInfo(),
                     paymentResult.getTransactionId(),
                     responseCode,
                     transactionStatus,
