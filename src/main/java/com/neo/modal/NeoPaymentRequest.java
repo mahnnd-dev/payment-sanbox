@@ -1,10 +1,12 @@
 package com.neo.modal;
 
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.text.NumberFormat;
-import java.util.Locale;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -34,13 +36,13 @@ public class NeoPaymentRequest {
             try {
                 long amount = Long.parseLong(Neo_Amount);
                 // Sử dụng DecimalFormat để thêm dấu phân cách hàng nghìn
-                java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
-                return formatter.format(amount) + " " + (Neo_CurrCode != null ? Neo_CurrCode : "VND");
+                DecimalFormat formatter = new DecimalFormat("#,###");
+                return formatter.format(amount) + " " + (Neo_CurrCode != null ? Neo_CurrCode : "");
             } catch (NumberFormatException e) {
-                return Neo_Amount + " " + (Neo_CurrCode != null ? Neo_CurrCode : "VND");
+                return Neo_Amount + " " + (Neo_CurrCode != null ? Neo_CurrCode : "");
             }
         }
-        return "0 VND";
+        return "0";
     }
 
     public String getOrderId() {
@@ -78,7 +80,7 @@ public class NeoPaymentRequest {
     public String getDecodedOrderInfo() {
         if (Neo_OrderInfo != null) {
             try {
-                return java.net.URLDecoder.decode(Neo_OrderInfo, "UTF-8");
+                return URLDecoder.decode(Neo_OrderInfo, StandardCharsets.UTF_8);
             } catch (Exception e) {
                 return Neo_OrderInfo;
             }

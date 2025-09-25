@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         {code: 'VISA', name: 'Visa', logo: '/images/banks/visa.svg'}
     ];
 
+
     let selectedBank = null;
     let orderInfo = {}; // Lưu thông tin đơn hàng
 
@@ -51,12 +52,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const orderIdElement = document.getElementById('orderId');
         const amountElement = document.getElementById('amount');
         const supplierElement = document.getElementById('supplierName');
+        const orderTypeElement = document.getElementById('orderType');
+        const txnRefElement = document.getElementById('txnRef');
+        const tmnCodeElement = document.getElementById('tmnCode');
+        const returnUrlElement = document.getElementById('returnUrl');
+        const orderInfor = document.getElementById('orderInfo');
 
-        if (orderIdElement && amountElement && supplierElement) {
+
+        if (orderIdElement || amountElement || supplierElement) {
             orderInfo = {
-                orderId: orderIdElement.value || '#000000',
-                amount: amountElement.value || '0 VND',
-                supplier: supplierElement.value || 'NEO'
+                orderId: orderIdElement?.value || '#000000',
+                txnRef: txnRefElement?.value || '',
+                amount: amountElement?.value || '0 VND',
+                supplier: supplierElement?.value || 'NEO',
+                returnUrl: returnUrlElement?.value || '',
+                orderType: orderTypeElement?.value || 'payment',
+                tmnCode: tmnCodeElement?.value || '',
+                orderInfor: orderInfor?.value || ''
             };
         }
 
@@ -120,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const cardPaymentForm = document.getElementById('cardPaymentForm');
         if (!cardPaymentForm) return;
 
-        cardPaymentForm.addEventListener('submit', function(e) {
+        cardPaymentForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
             const formData = {
@@ -146,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Format card number input
         const cardNumberInput = document.getElementById('cardNumber');
         if (cardNumberInput) {
-            cardNumberInput.addEventListener('input', function(e) {
+            cardNumberInput.addEventListener('input', function (e) {
                 let value = e.target.value.replace(/\D/g, '');
                 value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
                 e.target.value = value;
@@ -156,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Format card date input
         const cardDateInput = document.getElementById('cardDate');
         if (cardDateInput) {
-            cardDateInput.addEventListener('input', function(e) {
+            cardDateInput.addEventListener('input', function (e) {
                 let value = e.target.value.replace(/\D/g, '');
                 if (value.length >= 2) {
                     value = value.substring(0, 2) + '/' + value.substring(2, 4);
@@ -173,17 +185,145 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.textContent = 'Đang xử lý...';
         submitBtn.disabled = true;
 
-        // Simulate API call
-        setTimeout(() => {
-            toastr.success('Thanh toán đang được xử lý!');
-            console.log('Payment processed:', formData);
+        // Hiển thị confirm dialog trước khi thanh toán
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Xác nhận thanh toán',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1976d2',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xác nhận thanh toán',
+                cancelButtonText: 'Hủy',
+                didOpen: () => {
+                    // Reset button khi mở dialog
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Thực hiện thanh toán
+                    executePayment(formData, submitBtn, originalText);
+                }
+            });
+        } else {
+            // Fallback nếu không có SweetAlert2
+            const confirmText = `Xác nhận thanh toán?\n\nNgân hàng: ${formData.bank}\nSố tiền: ${formData.orderInfo.amount || 'N/A'}\nMã đơn hàng: ${formData.orderInfo.orderId || 'N/A'}`;
+            if (confirm(confirmText)) {
+                executePayment(formData, submitBtn, originalText);
+            } else {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+    }
 
-            // Reset button
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+    function executePayment(formData, submitBtn, originalText) {
+        // Set loading state
+        submitBtn.textContent = 'Đang xử lý...';
+        submitBtn.disabled = true;
 
-            // Có thể redirect hoặc show kết quả ở đây
-        }, 2000);
+        // Gửi request đến backend
+        fetch('/api/neo-payment/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                bankCode: selectedBank?.code,
+                bankName: formData.bank,
+                cardNumber: formData.cardNumber.replace(/\s/g, ''), // Bỏ space
+                cardHolder: formData.cardHolder,
+                cardDate: formData.cardDate,
+                txnRef: formData.orderInfo.txnRef,
+                orderId: formData.orderInfo.orderId,
+                orderInfo: formData.orderInfo.orderId,
+                amount: formData.orderInfo.amount,
+                returnUrl: formData.orderInfo.returnUrl,
+                orderType: formData.orderInfo.orderType,
+                tmnCode: formData.orderInfo.tmnCode,
+                orderInfor: formData.orderInfo.orderInfor
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Payment response:', data);
+                handlePaymentResponse(data);
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                handlePaymentError(error);
+            })
+            .finally(() => {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+    }
+
+    function handlePaymentResponse(data) {
+        if (data.success) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Thanh toán thành công!',
+                    text: 'Giao dịch của bạn đã được xử lý thành công.',
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'Hoàn tất'
+                }).then(() => {
+                    // Redirect về return URL hoặc trang success
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        // Fallback redirect
+                        const returnUrl = document.getElementById('returnUrl')?.value;
+                        if (returnUrl) {
+                            window.location.href = returnUrl;
+                        }
+                    }
+                });
+            } else {
+                toastr.success('Thanh toán thành công!');
+                // Handle redirect
+                setTimeout(() => {
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    }
+                }, 2000);
+            }
+        } else {
+            // Handle payment failure
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Thanh toán thất bại',
+                    text: data.message || 'Có lỗi xảy ra trong quá trình xử lý thanh toán.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Thử lại'
+                });
+            } else {
+                toastr.error(data.message || 'Thanh toán thất bại');
+            }
+        }
+    }
+
+    function handlePaymentError(error) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Lỗi kết nối',
+                text: 'Không thể kết nối đến server. Vui lòng thử lại.',
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Thử lại'
+            });
+        } else {
+            toastr.error('Lỗi kết nối. Vui lòng thử lại.');
+        }
     }
 
     function setupNavigation() {

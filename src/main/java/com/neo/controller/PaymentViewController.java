@@ -44,6 +44,13 @@ public class PaymentViewController {
         return "payment_form";
     }
 
+    @GetMapping("/payment/result")
+    public String paymentResult(Model model, String status) {
+        // Đảm bảo dữ liệu được truyền vào fragment
+        model.addAttribute("status", status);
+        return "payment_result";
+    }
+
     @GetMapping("/test")
     public String test() {
         return "payment";
