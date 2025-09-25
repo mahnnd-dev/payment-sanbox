@@ -1,5 +1,7 @@
 // app.js
 document.addEventListener('DOMContentLoaded', function () {
+    const card = {card: "0000000000000000000", nameCard: "NGUYEN DUC MANH", cardDate: "09/25"};
+
     const banks = [
         {code: 'ABBANK', name: 'ABBANK', logo: '/images/banks/abbank.svg'},
         {code: 'ACB', name: 'ACB', logo: '/images/banks/acb.svg'},
@@ -162,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cardPaymentForm.addEventListener('submit', function (e) {
             e.preventDefault();
-
             const formData = {
                 bank: selectedBank?.name,
                 cardNumber: document.getElementById('cardNumber')?.value,

@@ -2,7 +2,7 @@ package com.neo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.neo.modal.NeoPaymentRequest;
+import com.neo.dto.NeoPaymentRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class PaymentViewController {
     private final ObjectMapper mapper;
-    private final String supplierName = "https://neo.vn";
 
     // Trang chính (index.html)
     @GetMapping("/payment")
@@ -25,7 +24,6 @@ public class PaymentViewController {
         // Giả lập dữ liệu từ request hoặc query param
         String json = mapper.writeValueAsString(request);
         model.addAttribute("neoPaymentRequest", json);
-        model.addAttribute("supplierName", supplierName);
         return "index"; // Template chính
     }
 
@@ -35,7 +33,6 @@ public class PaymentViewController {
         // Đảm bảo dữ liệu được truyền vào fragment
         String json = mapper.writeValueAsString(request);
         model.addAttribute("neoPaymentRequest", json);
-        model.addAttribute("supplierName", supplierName);
         return "payment_methods"; // resources/templates/payment_methods.html
     }
 
@@ -45,7 +42,6 @@ public class PaymentViewController {
         // Đảm bảo dữ liệu được truyền vào fragment
         String json = mapper.writeValueAsString(request);
         model.addAttribute("neoPaymentRequest", json);
-        model.addAttribute("supplierName", supplierName);
         return "payment_form";
     }
 

@@ -1,4 +1,4 @@
-package com.neo.modal;
+package com.neo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
