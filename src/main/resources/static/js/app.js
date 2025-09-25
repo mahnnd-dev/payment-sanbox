@@ -88,17 +88,23 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById("amount").textContent = "#" + formatted;
         document.getElementById("amountPay").textContent = "#" + formatted;
 
-        const orderInfoElement = request.neo_OrderInfo;
-        const returnUrlElement = request.neo_ReturnUrl;
-
         if (txnRefElement || amountElement || tmnCodeElement) {
             orderInfo = {
-                tmnCode: tmnCodeElement,
-                txnRef: txnRefElement,
-                amount: amountElement,
-                amountPay: amountPayElement,
-                orderInfo: orderInfoElement,
-                returnUrl: orderInfoElement
+                txnRef: request.neo_TxnRef,
+                tmnCode: request.neo_TmnCode,
+                orderInfo: request.neo_OrderInfo,
+                amount: request.neo_Amount,
+                amountPay: request.neo_Amount,             // đã format currency
+                ipAddr: request.neo_IpAddr,
+                locale: request.neo_Locale,
+                orderType: request.neo_OrderType,
+                currCode: request.neo_CurrCode,
+                createDate: request.neo_CreateDate,
+                expireDate: request.neo_ExpireDate,
+                command: request.neo_Command,
+                returnUrl: request.neo_ReturnUrl,
+                secureHash: request.neo_SecureHash,
+                version: request.neo_Version
             };
         }
 
@@ -229,14 +235,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Thực hiện thanh toán
-                    executePayment(formData, submitBtn, originalText);
+                    executePaymentFake(formData, submitBtn, originalText);
                 }
             });
         } else {
             // Fallback nếu không có SweetAlert2
             const confirmText = `Xác nhận thanh toán?\n\nNgân hàng: ${formData.bank}\nSố tiền: ${formData.orderInfo.amount || 'N/A'}\nMã đơn hàng: ${formData.orderInfo.orderId || 'N/A'}`;
             if (confirm(confirmText)) {
-                executePayment(formData, submitBtn, originalText);
+                executePaymentFake(formData, submitBtn, originalText);
             } else {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
@@ -244,112 +250,98 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function executePayment(formData, submitBtn, originalText) {
+    function executePaymentFake(formData, submitBtn, originalText) {
         console.log("#executePayment ", formData);
-        // Set loading state
-        submitBtn.textContent = 'Đang xử lý...';
-        submitBtn.disabled = true;
 
-        // Gửi request đến backend
-        fetch('/api/neo-payment/process', {
+        // Reset trạng thái nút
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Kết quả giả lập thanh toán',
+                text: 'Chọn trạng thái để lưu vào DB',
+                icon: 'info',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Thành công',
+                denyButtonText: 'Thất bại',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                console.log("------------------------------", result);
+                if (result.isConfirmed) {
+                    // Gọi API lưu giao dịch thành công (bảng querydr)
+                    saveTransactionResult(formData, true);
+                } else if (result.isDenied) {
+                    // Gọi API lưu giao dịch thất bại (bảng refund hoặc log lỗi)
+                    saveTransactionResult(formData, false);
+                }
+            });
+        } else {
+            // Fallback nếu không có SweetAlert2
+            const confirmText = "Chọn kết quả thanh toán:\nOK = Thành công\nCancel = Thất bại";
+            if (confirm(confirmText)) {
+                saveTransactionResult(formData, true);
+            } else {
+                saveTransactionResult(formData, false);
+            }
+        }
+    }
+
+    function saveTransactionResult(formData, isSuccess) {
+        fetch('/api/neo-payment/save-transaction', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                bankCode: selectedBank?.code,
-                bankName: formData.bank,
-                cardNumber: formData.cardNumber.replace(/\s/g, ''), // Bỏ space
-                cardHolder: formData.cardHolder,
-                cardDate: formData.cardDate,
+                requestId: crypto.randomUUID(),
+                version: formData.orderInfo.version,
+                command: isSuccess ? "querydr" : "refund",
                 tmnCode: formData.orderInfo.tmnCode,
                 txnRef: formData.orderInfo.txnRef,
+                orderInfo: formData.orderInfo.orderInfo,
+                transactionNo: formData.orderInfo.transactionNo,
+                transactionDate: formData.orderInfo.transactionDate,
+                createDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
+                ipAddr: window.location.hostname,
                 amount: formData.orderInfo.amount,
                 amountPay: formData.orderInfo.amountPay,
-                orderInfo: formData.orderInfo.orderInfo,
-                returnUrl: formData.orderInfo.returnUrl
+                bankCode: selectedBank?.code,
+                bankName: formData.bank,
+                cardNumber: formData.cardNumber?.replace(/\d(?=\d{4})/g, "*"),
+                cardHolder: formData.cardHolder,
+                cardDate: formData.cardDate,
+                refundAmount: isSuccess ? null : formData.orderInfo.amount,
+                refundReason: isSuccess ? null : "Thanh toán thất bại",
+                status: isSuccess ? "SUCCESS" : "FAILED"
             })
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log('Payment response:', data);
-                handlePaymentResponse(data);
-            })
-            .catch(error => {
-                console.error('Payment error:', error);
-                handlePaymentError(error);
-            })
-            .finally(() => {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            });
-    }
-
-    function handlePaymentResponse(data) {
-        if (data.success) {
-            if (typeof Swal !== 'undefined') {
                 Swal.fire({
-                    title: 'Thanh toán thành công!',
-                    text: 'Giao dịch của bạn đã được xử lý thành công.',
-                    icon: 'success',
-                    confirmButtonColor: '#28a745',
-                    confirmButtonText: 'Hoàn tất'
+                    title: isSuccess ? 'Thành công' : 'Thất bại',
+                    text: data.message || 'Đã lưu giao dịch',
+                    icon: isSuccess ? 'success' : 'error',
+                    confirmButtonText: 'Về trang chủ'
                 }).then(() => {
-                    // Redirect về return URL hoặc trang success
-                    if (data.redirectUrl) {
-                        window.location.href = data.redirectUrl;
-                    } else {
-                        // Fallback redirect
-                        const returnUrl = document.getElementById('returnUrl')?.value;
-                        if (returnUrl) {
-                            window.location.href = returnUrl;
-                        }
-                    }
+                    // Redirect về home sau khi bấm nút
+                    window.location.href = "/";
                 });
-            } else {
-                toastr.success('Thanh toán thành công!');
-                // Handle redirect
-                setTimeout(() => {
-                    if (data.redirectUrl) {
-                        window.location.href = data.redirectUrl;
-                    }
-                }, 2000);
-            }
-        } else {
-            // Handle payment failure
-            if (typeof Swal !== 'undefined') {
+            })
+            .catch(err => {
+                console.error("Save transaction error:", err);
                 Swal.fire({
-                    title: 'Thanh toán thất bại',
-                    text: data.message || 'Có lỗi xảy ra trong quá trình xử lý thanh toán.',
+                    title: 'Lỗi',
+                    text: 'Không thể lưu giao dịch',
                     icon: 'error',
-                    confirmButtonColor: '#dc3545',
-                    confirmButtonText: 'Thử lại'
+                    confirmButtonText: 'Về trang chủ'
+                }).then(() => {
+                    window.location.href = "/";
                 });
-            } else {
-                toastr.error(data.message || 'Thanh toán thất bại');
-            }
-        }
+            });
     }
 
-    function handlePaymentError(error) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Lỗi kết nối',
-                text: 'Không thể kết nối đến server. Vui lòng thử lại.',
-                icon: 'error',
-                confirmButtonColor: '#dc3545',
-                confirmButtonText: 'Thử lại'
-            });
-        } else {
-            toastr.error('Lỗi kết nối. Vui lòng thử lại.');
-        }
-    }
 
     function setupNavigation() {
         const backToMethodsBtn = document.getElementById('backToMethods');

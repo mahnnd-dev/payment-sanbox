@@ -112,7 +112,8 @@ public class IPNService {
             params.put("Neo_TransactionNo", ipnRequest.getNeo_TransactionNo());
             params.put("Neo_TransactionStatus", ipnRequest.getNeo_TransactionStatus());
             params.put("Neo_TxnRef", ipnRequest.getNeo_TxnRef());
-            return EnCodeUtils.buildUrl(ipnUrl, secretKey, params);
+            String queryUrl = EnCodeUtils.buildSecureQuery(secretKey, params);
+            return ipnUrl + "?" + queryUrl;
         } catch (Exception e) {
             log.error("Error generating secure hash for txnRef: {}", ipnRequest.getNeo_TxnRef(), e);
             return "";
