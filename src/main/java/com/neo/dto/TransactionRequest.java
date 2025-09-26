@@ -24,4 +24,6 @@ public class TransactionRequest {
     private Long refundAmount;
     private String refundReason;
     private String status;
+    private String statusMessage;
+    private String secureHash;
 }

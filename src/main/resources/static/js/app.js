@@ -1,6 +1,5 @@
 // app.js
 document.addEventListener('DOMContentLoaded', function () {
-    const card = {card: "0000000000000000000", nameCard: "NGUYEN DUC MANH", cardDate: "09/25"};
 
     const banks = [
         {code: 'ABBANK', name: 'ABBANK', logo: '/images/banks/abbank.svg'},
@@ -33,6 +32,12 @@ document.addEventListener('DOMContentLoaded', function () {
         {code: 'VISA', name: 'Visa', logo: '/images/banks/visa.svg'}
     ];
 
+    // Định nghĩa các trạng thái giao dịch
+    const TRANSACTION_STATUS = {
+        SUCCESS: '00',    // Thành công
+        FAILED: '01',     // Thất bại
+        CANCELLED: '02'   // Hủy giao dịch
+    };
 
     let selectedBank = null;
     let orderInfo = {}; // Lưu thông tin đơn hàng
@@ -51,24 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load thông tin đơn hàng từ hidden fields hoặc từ server
     function loadOrderInfo() {
-        // {
-        //     "neo_TxnRef": "df67a512-5ab6-408c-8240-2490d82b5f6f",
-        //     "neo_TmnCode": "A21558QU",
-        //     "neo_OrderInfo": "233|dsdsd|1|1|18|1|1|https://votephi.voting.vn/detail/17147",
-        //     "neo_Amount": "10000000",
-        //     "neo_IpAddr": "172.30.32.1",
-        //     "neo_Locale": "vi-VN",
-        //     "neo_OrderType": "billpayment",
-        //     "neo_CurrCode": "VND",
-        //     "neo_CreateDate": "20250925085806",
-        //     "neo_ExpireDate": "20250925091306",
-        //     "neo_Command": "pay",
-        //     "neo_ReturnUrl": "http://localhost:9001/api/neo/call-back",
-        //     "neo_SecureHash": "bbfe977e0f04b69302238a0874afbb0920a3d0e68c8c98bfee67572c855cabc75374da2b68c7bf129d4a6564ae2586d3813119ca9427afd85b0c0349b4fa859e",
-        //     "neo_Version": "2.1.0"
-        // }
         const request = JSON.parse(document.getElementById("paymentData").dataset.request);
         console.log(request);
+
         // nhà cung cấp
         const tmnCodeElement = request.neo_TmnCode;
         // mã đơn hàng
@@ -94,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 tmnCode: request.neo_TmnCode,
                 orderInfo: request.neo_OrderInfo,
                 amount: request.neo_Amount,
-                amountPay: request.neo_Amount,             // đã format currency
+                amountPay: request.neo_Amount,
                 ipAddr: request.neo_IpAddr,
                 locale: request.neo_Locale,
                 orderType: request.neo_OrderType,
@@ -235,23 +225,27 @@ document.addEventListener('DOMContentLoaded', function () {
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Thực hiện thanh toán
-                    executePaymentFake(formData, submitBtn, originalText);
+                    executePaymentSimulation(formData, submitBtn, originalText);
+                } else {
+                    // User đã hủy giao dịch
+                    saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
                 }
             });
         } else {
             // Fallback nếu không có SweetAlert2
             const confirmText = `Xác nhận thanh toán?\n\nNgân hàng: ${formData.bank}\nSố tiền: ${formData.orderInfo.amount || 'N/A'}\nMã đơn hàng: ${formData.orderInfo.orderId || 'N/A'}`;
             if (confirm(confirmText)) {
-                executePaymentFake(formData, submitBtn, originalText);
+                executePaymentSimulation(formData, submitBtn, originalText);
             } else {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
+                saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
             }
         }
     }
 
-    function executePaymentFake(formData, submitBtn, originalText) {
-        console.log("#executePayment ", formData);
+    function executePaymentSimulation(formData, submitBtn, originalText) {
+        console.log("#executePaymentSimulation ", formData);
 
         // Reset trạng thái nút
         submitBtn.textContent = originalText;
@@ -259,70 +253,84 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Kết quả giả lập thanh toán',
-                text: 'Chọn trạng thái để lưu vào DB',
+                title: 'Mô phỏng kết quả thanh toán',
+                text: 'Chọn trạng thái để lưu vào CSDL',
                 icon: 'info',
                 showCancelButton: true,
                 showDenyButton: true,
-                confirmButtonText: 'Thành công',
-                denyButtonText: 'Thất bại',
-                cancelButtonText: 'Hủy'
+                confirmButtonText: 'Thành công (00)',
+                denyButtonText: 'Thất bại (01)',
+                cancelButtonText: 'Hủy giao dịch (02)',
+                confirmButtonColor: '#28a745',
+                denyButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d'
             }).then((result) => {
-                console.log("------------------------------", result);
                 if (result.isConfirmed) {
-                    // Gọi API lưu giao dịch thành công (bảng querydr)
-                    saveTransactionResult(formData, true);
+                    // Trạng thái 00: Thành công
+                    saveTransactionResult(formData, TRANSACTION_STATUS.SUCCESS);
                 } else if (result.isDenied) {
-                    // Gọi API lưu giao dịch thất bại (bảng refund hoặc log lỗi)
-                    saveTransactionResult(formData, false);
+                    // Trạng thái 01: Thất bại
+                    saveTransactionResult(formData, TRANSACTION_STATUS.FAILED);
+                } else {
+                    // Trạng thái 02: Hủy giao dịch
+                    saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
                 }
             });
         } else {
             // Fallback nếu không có SweetAlert2
-            const confirmText = "Chọn kết quả thanh toán:\nOK = Thành công\nCancel = Thất bại";
-            if (confirm(confirmText)) {
-                saveTransactionResult(formData, true);
+            const choice = prompt("Chọn trạng thái:\n00 = Thành công\n01 = Thất bại\n02 = Hủy giao dịch", "00");
+            if (choice === "00") {
+                saveTransactionResult(formData, TRANSACTION_STATUS.SUCCESS);
+            } else if (choice === "01") {
+                saveTransactionResult(formData, TRANSACTION_STATUS.FAILED);
             } else {
-                saveTransactionResult(formData, false);
+                saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
             }
         }
     }
 
-    function saveTransactionResult(formData, isSuccess) {
+    function saveTransactionResult(formData, statusCode) {
+        const statusInfo = getStatusInfo(statusCode);
+
+        const transactionData = {
+            requestId: crypto.randomUUID(),
+            version: formData.orderInfo.version,
+            command: getCommandByStatus(statusCode),
+            tmnCode: formData.orderInfo.tmnCode,
+            txnRef: formData.orderInfo.txnRef,
+            orderInfo: formData.orderInfo.orderInfo,
+            transactionNo: generateTransactionNo(),
+            transactionDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
+            createDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
+            ipAddr: window.location.hostname,
+            amount: formData.orderInfo.amount,
+            amountPay: formData.orderInfo.amountPay,
+            bankCode: selectedBank?.code,
+            bankName: formData.bank,
+            cardNumber: formData.cardNumber?.replace(/\d(?=\d{4})/g, "*"),
+            cardHolder: formData.cardHolder,
+            cardDate: formData.cardDate,
+            refundAmount: statusCode !== TRANSACTION_STATUS.SUCCESS ? formData.orderInfo.amount : null,
+            refundReason: statusCode !== TRANSACTION_STATUS.SUCCESS ? statusInfo.reason : null,
+            status: statusCode,
+            statusMessage: statusInfo.message
+        };
+
+        console.log('Sending transaction data:', transactionData);
+
         fetch('/api/neo-payment/save-transaction', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                requestId: crypto.randomUUID(),
-                version: formData.orderInfo.version,
-                command: isSuccess ? "querydr" : "refund",
-                tmnCode: formData.orderInfo.tmnCode,
-                txnRef: formData.orderInfo.txnRef,
-                orderInfo: formData.orderInfo.orderInfo,
-                transactionNo: formData.orderInfo.transactionNo,
-                transactionDate: formData.orderInfo.transactionDate,
-                createDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
-                ipAddr: window.location.hostname,
-                amount: formData.orderInfo.amount,
-                amountPay: formData.orderInfo.amountPay,
-                bankCode: selectedBank?.code,
-                bankName: formData.bank,
-                cardNumber: formData.cardNumber?.replace(/\d(?=\d{4})/g, "*"),
-                cardHolder: formData.cardHolder,
-                cardDate: formData.cardDate,
-                refundAmount: isSuccess ? null : formData.orderInfo.amount,
-                refundReason: isSuccess ? null : "Thanh toán thất bại",
-                status: isSuccess ? "SUCCESS" : "FAILED"
-            })
+            body: JSON.stringify(transactionData)
         })
             .then(res => res.json())
             .then(data => {
                 Swal.fire({
-                    title: isSuccess ? 'Thành công' : 'Thất bại',
-                    text: data.message || 'Đã lưu giao dịch',
-                    icon: isSuccess ? 'success' : 'error',
+                    title: statusInfo.title,
+                    text: data.message || statusInfo.message,
+                    icon: statusInfo.icon,
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
                     // Redirect về home sau khi bấm nút
@@ -332,8 +340,8 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => {
                 console.error("Save transaction error:", err);
                 Swal.fire({
-                    title: 'Lỗi',
-                    text: 'Không thể lưu giao dịch',
+                    title: 'Lỗi hệ thống',
+                    text: 'Không thể lưu giao dịch vào CSDL',
                     icon: 'error',
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
@@ -342,6 +350,55 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    function getStatusInfo(statusCode) {
+        switch (statusCode) {
+            case TRANSACTION_STATUS.SUCCESS:
+                return {
+                    title: 'Thanh toán thành công',
+                    message: 'Giao dịch đã được xử lý thành công',
+                    icon: 'success',
+                    reason: null
+                };
+            case TRANSACTION_STATUS.FAILED:
+                return {
+                    title: 'Thanh toán thất bại',
+                    message: 'Giao dịch không thành công',
+                    icon: 'error',
+                    reason: 'Lỗi trong quá trình xử lý thanh toán'
+                };
+            case TRANSACTION_STATUS.CANCELLED:
+                return {
+                    title: 'Giao dịch bị hủy',
+                    message: 'Người dùng đã hủy giao dịch',
+                    icon: 'warning',
+                    reason: 'Người dùng hủy giao dịch'
+                };
+            default:
+                return {
+                    title: 'Trạng thái không xác định',
+                    message: 'Trạng thái giao dịch không hợp lệ',
+                    icon: 'question',
+                    reason: 'Trạng thái không xác định'
+                };
+        }
+    }
+
+    function getCommandByStatus(statusCode) {
+        switch (statusCode) {
+            case TRANSACTION_STATUS.SUCCESS:
+                return "pay";
+            case TRANSACTION_STATUS.FAILED:
+                return "refund";
+            case TRANSACTION_STATUS.CANCELLED:
+                return "cancel";
+            default:
+                return "error";
+        }
+    }
+
+    function generateTransactionNo() {
+        return Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    }
 
     function setupNavigation() {
         const backToMethodsBtn = document.getElementById('backToMethods');
@@ -365,15 +422,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         cancelButtonText: 'Tiếp tục thanh toán'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            toastr.info('Giao dịch đã được hủy');
-                            showPaymentMethods();
+                            // Lưu trạng thái hủy vào CSDL
+                            const formData = {
+                                bank: selectedBank?.name,
+                                orderInfo: orderInfo
+                            };
+                            saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
                         }
                     });
                 } else {
                     // Fallback nếu SweetAlert2 không có
                     if (confirm('Bạn có chắc chắn muốn hủy giao dịch?')) {
-                        toastr.info('Giao dịch đã được hủy');
-                        showPaymentMethods();
+                        const formData = {
+                            bank: selectedBank?.name,
+                            orderInfo: orderInfo
+                        };
+                        saveTransactionResult(formData, TRANSACTION_STATUS.CANCELLED);
                     }
                 }
             });

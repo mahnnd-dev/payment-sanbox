@@ -1,0 +1,59 @@
+package com.neo.modal;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = "transaction_log")
+public class TransactionLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // --- Trường phân loại ---
+    @Column(nullable = false)
+    private String command; // "querydr", "refund"
+
+    // --- Các trường chung ---
+    @Column(nullable = false, unique = true)
+    private String requestId;
+    private String version;
+    @Column(nullable = false)
+    private String tmnCode;
+    @Column(nullable = false)
+    private String txnRef;
+    private String orderInfo;
+    @Column(nullable = false)
+    private String transactionDate;
+    @Column(nullable = false)
+    private String createDate;
+    @Column(nullable = false)
+    private String ipAddr;
+//    @Column(length = 256, nullable = false)
+    private String requestSecureHash;
+    private String responseCode;
+    private String responseMessage;
+    private String responseTransactionNo;
+    private String responsePayDate;
+    @Column(length = 256)
+    private String responseSecureHash;
+
+    // --- Các trường riêng cho REFUND ---
+    private String transactionType; // "02", "03"
+    private Long refundAmount; // Số tiền hoàn
+
+    // --- Các trường riêng cho QUERY ---
+    private String responseTransactionStatus; // Trạng thái giao dịch gốc
+    private Long responseAmount; // Số tiền giao dịch gốc
+    private String responseBankCode; // Mã ngân hàng
+
+    // --- Thông tin hệ thống ---
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+
