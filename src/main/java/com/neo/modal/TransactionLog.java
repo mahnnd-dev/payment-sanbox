@@ -3,8 +3,6 @@ package com.neo.modal;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 @Entity
 @Table(name = "transaction_log")
@@ -33,27 +31,19 @@ public class TransactionLog {
     private String createDate;
     @Column(nullable = false)
     private String ipAddr;
-//    @Column(length = 256, nullable = false)
-    private String requestSecureHash;
+    //    @Column(length = 256, nullable = false)
+    private String secureHash;
     private String responseCode;
     private String responseMessage;
-    private String responseTransactionNo;
-    private String responsePayDate;
-    @Column(length = 256)
-    private String responseSecureHash;
-
+    private String transactionNo;
+    private String payDate;
     // --- Các trường riêng cho REFUND ---
     private String transactionType; // "02", "03"
     private Long refundAmount; // Số tiền hoàn
 
     // --- Các trường riêng cho QUERY ---
-    private String responseTransactionStatus; // Trạng thái giao dịch gốc
-    private Long responseAmount; // Số tiền giao dịch gốc
-    private String responseBankCode; // Mã ngân hàng
-
-    // --- Thông tin hệ thống ---
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String transactionStatus; // Trạng thái giao dịch gốc
+    private Long amount; // Số tiền giao dịch gốc
+    private String bankCode; // Mã ngân hàng
 }
 

@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 tmnCode: request.neo_TmnCode,
                 orderInfo: request.neo_OrderInfo,
                 amount: request.neo_Amount,
-                amountPay: request.neo_Amount,
                 ipAddr: request.neo_IpAddr,
                 locale: request.neo_Locale,
                 orderType: request.neo_OrderType,
@@ -293,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const statusInfo = getStatusInfo(statusCode);
 
         const transactionData = {
+            // mã tự sinh từ hệ thống
             requestId: crypto.randomUUID(),
             version: formData.orderInfo.version,
             command: getCommandByStatus(statusCode),
@@ -300,11 +300,10 @@ document.addEventListener('DOMContentLoaded', function () {
             txnRef: formData.orderInfo.txnRef,
             orderInfo: formData.orderInfo.orderInfo,
             transactionNo: generateTransactionNo(),
-            transactionDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
-            createDate: new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14),
-            ipAddr: window.location.hostname,
+            transactionDate: getDate(),
+            createDate: getDate(),
+            ipAddr: orderInfo.ipAddr,
             amount: formData.orderInfo.amount,
-            amountPay: formData.orderInfo.amountPay,
             bankCode: selectedBank?.code,
             bankName: formData.bank,
             cardNumber: formData.cardNumber?.replace(/\d(?=\d{4})/g, "*"),
@@ -315,9 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
             status: statusCode,
             statusMessage: statusInfo.message
         };
-
         console.log('Sending transaction data:', transactionData);
-
         fetch('/api/neo-payment/save-transaction', {
             method: 'POST',
             headers: {
@@ -348,6 +345,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.location.href = "/";
                 });
             });
+    }
+
+
+    function getDate() {
+        const transactionDate = new Date();
+        const formattedDate = transactionDate.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).replace(',', '');
+        return formattedDate;
     }
 
     function getStatusInfo(statusCode) {
@@ -388,11 +400,11 @@ document.addEventListener('DOMContentLoaded', function () {
             case TRANSACTION_STATUS.SUCCESS:
                 return "pay";
             case TRANSACTION_STATUS.FAILED:
-                return "refund";
+                return "error";
             case TRANSACTION_STATUS.CANCELLED:
                 return "cancel";
             default:
-                return "error";
+                return "unknown";
         }
     }
 

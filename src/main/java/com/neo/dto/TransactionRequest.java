@@ -15,7 +15,6 @@ public class TransactionRequest {
     private String createDate;
     private String ipAddr;
     private Long amount;
-    private Long amountPay;
     private String bankCode;
     private String bankName;
     private String cardNumber;

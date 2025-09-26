@@ -22,6 +22,7 @@ public class TransactionService {
 
     @Transactional
     public void saveTransaction(TransactionRequest dto) {
+        log.info("-------------> {}", dto);
         TransactionLog log = new TransactionLog();
         log.setCommand(dto.getCommand());
         log.setRequestId(dto.getRequestId());
@@ -32,20 +33,15 @@ public class TransactionService {
         log.setTransactionDate(dto.getTransactionDate());
         log.setCreateDate(dto.getCreateDate());
         log.setIpAddr(dto.getIpAddr());
-//        log.setRequestSecureHash(dto.getR());
         log.setResponseCode(dto.getStatus());
         log.setResponseMessage(dto.getStatusMessage());
-        log.setResponseTransactionNo(dto.getTransactionNo());
-        log.setResponsePayDate(dto.getCardDate());
-//        log.setResponseSecureHash(dto.getCardDate());
+        log.setTransactionNo(dto.getTransactionNo());
+        log.setPayDate(dto.getCardDate());
         log.setTransactionType("NEOPAY");
         log.setRefundAmount(dto.getRefundAmount());
-//        log.setCreateBy(dto.getC());
-        log.setResponseTransactionStatus(dto.getStatus());
-        log.setResponseAmount(dto.getAmount());
-        log.setResponseBankCode(dto.getBankCode());
-//        log.setCreatedAt(dto.getC());
-//        log.setUpdatedAt(dto.());
+        log.setTransactionStatus(dto.getStatus());
+        log.setAmount(dto.getAmount());
+        log.setBankCode(dto.getBankCode());
         transactionLogRepository.save(log);
 //        sendIPNCallback(log);
     }
@@ -55,11 +51,11 @@ public class TransactionService {
             // Create IPN request object
             IPNRequest ipnRequest = new IPNRequest(
                     transactionLog.getTmnCode(),
-                    String.valueOf(transactionLog.getResponseAmount()),
-                    generateBankTransactionNo(transactionLog.getResponseBankCode()),
-                    transactionLog.getResponseTransactionNo(),
+                    String.valueOf(transactionLog.getAmount()),
+                    generateBankTransactionNo(transactionLog.getBankCode()),
+                    transactionLog.getTransactionNo(),
                     transactionLog.getTransactionType(),
-                    transactionLog.getResponsePayDate(),
+                    transactionLog.getPayDate(),
                     transactionLog.getOrderInfo(),
                     generateTransactionId(),
                     transactionLog.getResponseCode(),
