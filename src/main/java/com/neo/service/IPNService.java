@@ -41,19 +41,26 @@ public class IPNService {
         while (attempt < maxRetryAttempts && !success) {
             attempt++;
             try {
-                log.info("Sending IPN callback (attempt {}/{}) for txnRef: {}", attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef());
+                log.info("Sending IPN callback (attempt {}/{}) for txnRef: {}",
+                        attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef());
+
                 success = sendIPNRequest(ipnRequest, attempt);
+
                 if (!success && attempt < maxRetryAttempts) {
                     // Wait before retry (exponential backoff)
                     Thread.sleep(1000L * attempt);
                 }
+
             } catch (Exception e) {
-                log.error("IPN callback attempt {}/{} failed for txnRef: {}", attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef(), e);
+                log.error("IPN callback attempt {}/{} failed for txnRef: {}",
+                        attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef(), e);
+
                 if (attempt == maxRetryAttempts) {
                     log.error("All IPN callback attempts failed for txnRef: {}", ipnRequest.getNeo_TxnRef());
                 }
             }
         }
+
         return CompletableFuture.completedFuture(success);
     }
 
@@ -73,7 +80,8 @@ public class IPNService {
                 log.info("IPN callback successful (attempt {}) for txnRef: {}, response: {}", attempt, ipnRequest.getNeo_TxnRef(), responseBody);
                 return true;
             } else {
-                log.warn("IPN callback failed with HTTP status: {} for txnRef: {}", response.getStatusCode(), ipnRequest.getNeo_TxnRef());
+                log.warn("IPN callback failed with HTTP status: {} for txnRef: {}",
+                        response.getStatusCode(), ipnRequest.getNeo_TxnRef());
                 return false;
             }
         } catch (Exception e) {
@@ -81,4 +89,5 @@ public class IPNService {
             return false;
         }
     }
+
 }

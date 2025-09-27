@@ -72,6 +72,7 @@ public class TransactionService {
             request.setNeo_ResponseCode(transactionLog.getResponseCode());
             request.setNeo_TransactionStatus(transactionLog.getTransactionStatus());
             request.setNeo_TxnRef(transactionLog.getTxnRef());
+
             ipnService.sendIPNNotification(request)
                     .thenAccept(success -> {
                         if (success) {
