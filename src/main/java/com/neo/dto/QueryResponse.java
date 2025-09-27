@@ -1,23 +1,57 @@
 package com.neo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class QueryResponse {
-    private String neo_ResponseId;
-    private String neo_Command;
-    private String neo_TmnCode;
-    private String neo_TxnRef;
-    private Long neo_Amount;
-    private String neo_OrderInfo;
-    private String neo_ResponseCode;
-    private String neo_Message;
-    private String neo_BankCode;
-    private String neo_PayDate;             // yyyyMMddHHmmss
-    private Long neo_TransactionNo;
-    private String neo_TransactionType;     // 01, 02, 03
-    private String neo_TransactionStatus;
-    private String neo_PromotionCode;
-    private Long neo_PromotionAmount;
-    private String neo_SecureHash;
+
+    @JsonProperty("Neo_ResponseId")
+    private String neoResponseId;
+
+    @JsonProperty("Neo_Command")
+    private String neoCommand;
+
+    @JsonProperty("Neo_TmnCode")
+    private String neoTmnCode;
+
+    @JsonProperty("Neo_TxnRef")
+    private String neoTxnRef;
+
+    @JsonProperty("Neo_Amount")
+    private Long neoAmount;
+
+    @JsonProperty("Neo_OrderInfo")
+    private String neoOrderInfo;
+
+    @JsonProperty("Neo_ResponseCode")
+    private String neoResponseCode;
+
+    @JsonProperty("Neo_Message")
+    private String neoMessage;
+
+    @JsonProperty("Neo_BankCode")
+    private String neoBankCode;
+
+    @JsonProperty("Neo_PayDate")
+    private String neoPayDate; // yyyyMMddHHmmss
+
+    @JsonProperty("Neo_TransactionNo")
+    private String neoTransactionNo;
+
+    @JsonProperty("Neo_TransactionType")
+    private String neoTransactionType; // 01, 02, 03
+
+    @JsonProperty("Neo_TransactionStatus")
+    private String neoTransactionStatus;
+
+    @JsonProperty("Neo_PromotionCode")
+    private String neoPromotionCode;
+
+    @JsonProperty("Neo_PromotionAmount")
+    private Long neoPromotionAmount;
+
+    @JsonProperty("Neo_SecureHash")
+    private String neoSecureHash;
 }
+

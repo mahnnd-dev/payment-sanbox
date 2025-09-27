@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,19 +48,19 @@ public class RefundTransactionService {
         refundTransaction.setResponseMessage("Hoàn giao dịch thành công");
         refundTransaction.setStatus("01");
         refundTransactionRepository.save(refundTransaction);
-        refundResponse.setNeo_ResponseId(request.getNeoRequestId());
-        refundResponse.setNeo_Command(request.getNeoCommand());
-        refundResponse.setNeo_TmnCode(request.getNeoTmnCode());
-        refundResponse.setNeo_TxnRef(request.getNeoTxnRef());
-        refundResponse.setNeo_Amount(request.getNeoAmount());
-        refundResponse.setNeo_OrderInfo(request.getNeoOrderInfo());
-        refundResponse.setNeo_ResponseCode("01");
-        refundResponse.setNeo_Message("Hoàn giao dịch thành công");
-        refundResponse.setNeo_BankCode(transactionLog.getBankCode());
-        refundResponse.setNeo_PayDate(transactionLog.getPayDate());
-        refundResponse.setNeo_TransactionNo(request.getNeoTransactionNo());
-        refundResponse.setNeo_TransactionType(request.getNeoTransactionType());
-        refundResponse.setNeo_TransactionStatus(request.getNeoRequestId());
+        refundResponse.setNeoResponseId(UUID.randomUUID().toString());
+        refundResponse.setNeoCommand(request.getNeoCommand());
+        refundResponse.setNeoTmnCode(request.getNeoTmnCode());
+        refundResponse.setNeoTxnRef(request.getNeoTxnRef());
+        refundResponse.setNeoAmount(request.getNeoAmount());
+        refundResponse.setNeoOrderInfo(request.getNeoOrderInfo());
+        refundResponse.setNeoResponseCode("01");
+        refundResponse.setNeoMessage("Hoàn giao dịch thành công");
+        refundResponse.setNeoBankCode(transactionLog.getBankCode());
+        refundResponse.setNeoPayDate(transactionLog.getPayDate());
+        refundResponse.setNeoTransactionNo(request.getNeoTransactionNo());
+        refundResponse.setNeoTransactionType(request.getNeoTransactionType());
+        refundResponse.setNeoTransactionStatus(request.getNeoRequestId());
         return refundResponse;
     }
 }

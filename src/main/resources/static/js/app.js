@@ -58,15 +58,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function loadOrderInfo() {
         const request = JSON.parse(document.getElementById("paymentData").dataset.request);
         console.log(request);
-
         // nhà cung cấp
         const tmnCodeElement = request.neo_TmnCode;
         // mã đơn hàng
         const txnRefElement = request.neo_TxnRef;
         // giá trị đơn hàng
         const amountElement = request.neo_Amount;
-        // số tiền thanh toán
-        const amountPayElement = request.neo_Amount;
         // định dạng số tiền
         const formatted = new Intl.NumberFormat(request.neo_Locale, {
             style: 'currency',
@@ -80,20 +77,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (txnRefElement || amountElement || tmnCodeElement) {
             orderInfo = {
-                txnRef: request.neo_TxnRef,
-                tmnCode: request.neo_TmnCode,
-                orderInfo: request.neo_OrderInfo,
-                amount: request.neo_Amount,
-                ipAddr: request.neo_IpAddr,
-                locale: request.neo_Locale,
-                orderType: request.neo_OrderType,
-                currCode: request.neo_CurrCode,
-                createDate: request.neo_CreateDate,
-                expireDate: request.neo_ExpireDate,
-                command: request.neo_Command,
-                returnUrl: request.neo_ReturnUrl,
-                secureHash: request.neo_SecureHash,
-                version: request.neo_Version
+                version: request.neo_Version,           // vnp_Version
+                command: request.neo_Command,           // vnp_Command
+                tmnCode: request.neo_TmnCode,           // vnp_TmnCode
+                amount: request.neo_Amount,             // vnp_Amount
+                bankCode: request.neo_BankCode,         // vnp_BankCode (tùy chọn)
+                createDate: request.neo_CreateDate,     // vnp_CreateDate
+                currCode: request.neo_CurrCode,         // vnp_CurrCode
+                ipAddr: request.neo_IpAddr,             // vnp_IpAddr
+                locale: request.neo_Locale,             // vnp_Locale
+                orderInfo: request.neo_OrderInfo,       // vnp_OrderInfo
+                orderType: request.neo_OrderType,       // vnp_OrderType
+                returnUrl: request.neo_ReturnUrl,       // vnp_ReturnUrl
+                expireDate: request.neo_ExpireDate,     // vnp_ExpireDate
+                txnRef: request.neo_TxnRef,             // vnp_TxnRef
+                secureHash: request.neo_SecureHash      // vnp_SecureHash
             };
         }
 
@@ -301,10 +299,14 @@ document.addEventListener('DOMContentLoaded', function () {
             orderInfo: formData.orderInfo.orderInfo,
             transactionNo: generateTransactionNo(),
             transactionDate: getDate(),
-            createDate: getDate(),
-            ipAddr: orderInfo.ipAddr,
+            ipAddr: formData.orderInfo.ipAddr,
             amount: formData.orderInfo.amount,
-            bankCode: selectedBank?.code,
+            bankCode: formData.orderInfo.bankCode,
+            createDate: formData.orderInfo.createDate,
+            currCode: formData.orderInfo.currCode,
+            locale: formData.orderInfo.locale,
+            orderType: formData.orderInfo.orderType,
+            expireDate: formData.orderInfo.expireDate,
             bankName: formData.bank,
             cardNumber: formData.cardNumber?.replace(/\d(?=\d{4})/g, "*"),
             cardHolder: formData.cardHolder,
@@ -350,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getDate() {
         const transactionDate = new Date();
-        const formattedDate = transactionDate.toLocaleString('en-GB', {
+        return transactionDate.toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -359,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function () {
             second: '2-digit',
             hour12: false
         }).replace(',', '');
-        return formattedDate;
     }
 
     function getStatusInfo(statusCode) {

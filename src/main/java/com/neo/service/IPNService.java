@@ -1,7 +1,7 @@
 package com.neo.service;
 
 import com.neo.dto.IPNRequest;
-import com.neo.util.EnCodeUtils;
+import com.neo.util.NeoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,8 +10,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -43,26 +41,19 @@ public class IPNService {
         while (attempt < maxRetryAttempts && !success) {
             attempt++;
             try {
-                log.info("Sending IPN callback (attempt {}/{}) for txnRef: {}",
-                        attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef());
-
+                log.info("Sending IPN callback (attempt {}/{}) for txnRef: {}", attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef());
                 success = sendIPNRequest(ipnRequest, attempt);
-
                 if (!success && attempt < maxRetryAttempts) {
                     // Wait before retry (exponential backoff)
                     Thread.sleep(1000L * attempt);
                 }
-
             } catch (Exception e) {
-                log.error("IPN callback attempt {}/{} failed for txnRef: {}",
-                        attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef(), e);
-
+                log.error("IPN callback attempt {}/{} failed for txnRef: {}", attempt, maxRetryAttempts, ipnRequest.getNeo_TxnRef(), e);
                 if (attempt == maxRetryAttempts) {
                     log.error("All IPN callback attempts failed for txnRef: {}", ipnRequest.getNeo_TxnRef());
                 }
             }
         }
-
         return CompletableFuture.completedFuture(success);
     }
 
@@ -70,53 +61,24 @@ public class IPNService {
         try {
             log.info("Sending IPN request (attempt {}) for txnRef: {}", attempt, ipnRequest.getNeo_TxnRef());
             // Generate secure hash first
-            String fullUrl = generateSecureHash(ipnRequest);
+            String hashData = NeoUtils.buildQueryString(ipnRequest.toMap());
+            String secureHash = NeoUtils.hmacSHA512(secretKey, hashData);
+            hashData += "&Neo_SecureHash=" + secureHash;
+            String fullUrl = ipnUrl + "?" + hashData;
             log.info("IPN URL: {}", fullUrl);
             // Send GET request
             ResponseEntity<String> response = restTemplate.getForEntity(fullUrl, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 String responseBody = response.getBody();
                 log.info("IPN callback successful (attempt {}) for txnRef: {}, response: {}", attempt, ipnRequest.getNeo_TxnRef(), responseBody);
-                // Check if merchant returns "RspCode=00" (standard success response)
-                if (responseBody.contains("RspCode=00")) {
-                    return true;
-                } else {
-                    log.warn("IPN callback returned non-success response for txnRef: {}, response: {}",
-                            ipnRequest.getNeo_TxnRef(), responseBody);
-                    // Still consider it successful if HTTP status is OK (some merchants don't return RspCode)
-                    return true;
-                }
+                return true;
             } else {
-                log.warn("IPN callback failed with HTTP status: {} for txnRef: {}",
-                        response.getStatusCode(), ipnRequest.getNeo_TxnRef());
+                log.warn("IPN callback failed with HTTP status: {} for txnRef: {}", response.getStatusCode(), ipnRequest.getNeo_TxnRef());
                 return false;
             }
         } catch (Exception e) {
             log.error("Error sending IPN request for txnRef: {}", ipnRequest.getNeo_TxnRef(), e);
             return false;
-        }
-    }
-
-    private String generateSecureHash(IPNRequest ipnRequest) {
-        try {
-            // Create sorted parameters map
-            Map<String, String> params = new HashMap<>();
-            params.put("Neo_Amount", ipnRequest.getNeo_Amount());
-            params.put("Neo_BankCode", ipnRequest.getNeo_BankCode());
-            if (ipnRequest.getNeo_BankTranNo() != null) params.put("Neo_BankTranNo", ipnRequest.getNeo_BankTranNo());
-            if (ipnRequest.getNeo_CardType() != null) params.put("Neo_CardType", ipnRequest.getNeo_CardType());
-            params.put("Neo_OrderInfo", ipnRequest.getNeo_OrderInfo());
-            if (ipnRequest.getNeo_PayDate() != null) params.put("Neo_PayDate", ipnRequest.getNeo_PayDate());
-            params.put("Neo_ResponseCode", ipnRequest.getNeo_ResponseCode());
-            params.put("Neo_TmnCode", ipnRequest.getNeo_TmnCode());
-            params.put("Neo_TransactionNo", ipnRequest.getNeo_TransactionNo());
-            params.put("Neo_TransactionStatus", ipnRequest.getNeo_TransactionStatus());
-            params.put("Neo_TxnRef", ipnRequest.getNeo_TxnRef());
-            String queryUrl = EnCodeUtils.buildSecureQuery(secretKey, params);
-            return ipnUrl + "?" + queryUrl;
-        } catch (Exception e) {
-            log.error("Error generating secure hash for txnRef: {}", ipnRequest.getNeo_TxnRef(), e);
-            return "";
         }
     }
 }

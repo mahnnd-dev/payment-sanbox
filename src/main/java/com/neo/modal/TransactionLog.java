@@ -31,15 +31,22 @@ public class TransactionLog {
     private String createDate;
     @Column(nullable = false)
     private String ipAddr;
-    //    @Column(length = 256, nullable = false)
-    private String secureHash;
     private String responseCode;
     private String responseMessage;
     private String transactionNo;
     private String payDate;
+    private String currCode;
+    private String locale;
+    private String orderType;
+    private String expireDate;
+    private String bankName;
+    private String cardNumber;
+    private String cardHolder;
+    private String cardDate;
     // --- Các trường riêng cho REFUND ---
     private String transactionType; // "02", "03"
     private Long refundAmount; // Số tiền hoàn
+    private String refundReason; // Số tiền hoàn
 
     // --- Các trường riêng cho QUERY ---
     private String transactionStatus; // Trạng thái giao dịch gốc

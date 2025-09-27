@@ -12,10 +12,14 @@ public class TransactionRequest {
     private String orderInfo;
     private String transactionNo;
     private String transactionDate;
-    private String createDate;
     private String ipAddr;
     private Long amount;
     private String bankCode;
+    private String createDate;
+    private String currCode;
+    private String locale;
+    private String orderType;
+    private String expireDate;
     private String bankName;
     private String cardNumber;
     private String cardHolder;
@@ -24,5 +28,4 @@ public class TransactionRequest {
     private String refundReason;
     private String status;
     private String statusMessage;
-    private String secureHash;
 }

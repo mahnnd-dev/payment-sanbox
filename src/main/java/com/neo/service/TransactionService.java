@@ -35,9 +35,22 @@ public class TransactionService {
         log.setResponseCode(dto.getStatus());
         log.setResponseMessage(dto.getStatusMessage());
         log.setTransactionNo(dto.getTransactionNo());
-        log.setPayDate(dto.getCardDate());
-        log.setTransactionType("NEOPAY");
+        log.setPayDate(getPayDate());
+        log.setCurrCode(dto.getCurrCode());
+        log.setLocale(dto.getLocale());
+        log.setOrderType(dto.getOrderType());
+        log.setExpireDate(dto.getExpireDate());
+        log.setBankName(dto.getBankName());
+        log.setCardNumber(dto.getCardNumber());
+        log.setCardDate(dto.getCardDate());
+        log.setCardHolder(dto.getCardHolder());
+//        Loại giao dịch tại hệ thống VNPAY:
+//        01: GD thanh toán
+//        02: Giao dịch hoàn trả toàn phần
+//        03: Giao dịch hoàn trả một phần
+        log.setTransactionType("01");
         log.setRefundAmount(dto.getRefundAmount());
+        log.setRefundReason(dto.getRefundReason());
         log.setTransactionStatus(dto.getStatus());
         log.setAmount(dto.getAmount());
         log.setBankCode(dto.getBankCode());
@@ -47,21 +60,19 @@ public class TransactionService {
 
     private void sendIPNCallback(TransactionLog transactionLog) {
         try {
-            // Create IPN request object
-            IPNRequest ipnRequest = new IPNRequest(
-                    transactionLog.getTmnCode(),
-                    String.valueOf(transactionLog.getAmount()),
-                    generateBankTransactionNo(transactionLog.getBankCode()),
-                    transactionLog.getTransactionNo(),
-                    transactionLog.getTransactionType(),
-                    transactionLog.getPayDate(),
-                    transactionLog.getOrderInfo(),
-                    generateTransactionId(),
-                    transactionLog.getResponseCode(),
-                    transactionLog.getResponseMessage(),
-                    transactionLog.getTxnRef());
-            // Send IPN notification asynchronously
-            ipnService.sendIPNNotification(ipnRequest)
+            IPNRequest request = new IPNRequest();
+            request.setNeo_TmnCode(transactionLog.getTmnCode());
+            request.setNeo_Amount(String.valueOf(transactionLog.getAmount()));
+            request.setNeo_BankCode(transactionLog.getBankCode());
+            request.setNeo_BankTranNo(generateBankTransactionNo(transactionLog.getBankCode()));
+            request.setNeo_CardType("ATM");
+            request.setNeo_PayDate(transactionLog.getPayDate());
+            request.setNeo_OrderInfo(transactionLog.getOrderInfo());
+            request.setNeo_TransactionNo(transactionLog.getTransactionNo());
+            request.setNeo_ResponseCode(transactionLog.getResponseCode());
+            request.setNeo_TransactionStatus(transactionLog.getTransactionStatus());
+            request.setNeo_TxnRef(transactionLog.getTxnRef());
+            ipnService.sendIPNNotification(request)
                     .thenAccept(success -> {
                         if (success) {
                             log.info("IPN notification sent successfully for txnRef: {}", transactionLog.getTxnRef());
@@ -85,5 +96,9 @@ public class TransactionService {
 
     private String generateBankTransactionNo(String bankCode) {
         return bankCode + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    private String getPayDate() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
 }

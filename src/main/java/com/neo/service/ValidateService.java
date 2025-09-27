@@ -35,6 +35,8 @@ public class ValidateService {
         fields.put("Neo_Version", request.getNeo_Version());
         String hashData = NeoUtils.buildQueryString(fields);
         String calculatedHash = NeoUtils.hmacSHA512(secretKey, hashData);
+        log.info("calculatedHash {}", calculatedHash);
+        log.info("requestHash {}", requestHash);
         if (!calculatedHash.equals(requestHash)) {
             log.info("Invalid secure hash");
             return false;
@@ -83,6 +85,8 @@ public class ValidateService {
         fields.put("Neo_IpAddr", request.getNeoIpAddr());
         String hashData = NeoUtils.buildQueryString(fields);
         String calculatedHash = NeoUtils.hmacSHA512(secretKey, hashData);
+        log.info("calculatedHash {}", calculatedHash);
+        log.info("requestHash {}", requestHash);
         if (!calculatedHash.equals(requestHash)) {
             log.info("Invalid secure hash");
             return false;
