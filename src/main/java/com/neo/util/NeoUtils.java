@@ -33,6 +33,7 @@ public class NeoUtils {
             for (byte b : result) {
                 sb.append(String.format("%02x", b));
             }
+            log.info("hmacSHA512: {}", sb.toString());
             return sb.toString();
         } catch (Exception e) {
             // Log the exception in a real application

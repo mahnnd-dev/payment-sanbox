@@ -90,10 +90,6 @@ public class TransactionService {
         }
     }
 
-    private String generateTransactionId() {
-        return String.valueOf(System.currentTimeMillis());
-    }
-
     private String generateBankTransactionNo(String bankCode) {
         return bankCode + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }

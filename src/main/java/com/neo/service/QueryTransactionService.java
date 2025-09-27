@@ -29,7 +29,7 @@ public class QueryTransactionService {
         TransactionLog transactionLog = logRepository.findAllByTxnRef(request.getNeoTxnRef());
         QueryResponse queryResponse = new QueryResponse();
         queryResponse.setNeoResponseId(UUID.randomUUID().toString());
-        queryResponse.setNeoCommand("query");
+        queryResponse.setNeoCommand("querydr");
         queryResponse.setNeoTmnCode(transactionLog.getTmnCode());
         queryResponse.setNeoAmount(transactionLog.getAmount());
         queryResponse.setNeoOrderInfo(transactionLog.getOrderInfo());
