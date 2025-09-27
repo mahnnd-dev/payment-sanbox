@@ -22,7 +22,6 @@ public class TransactionService {
 
     @Transactional
     public void saveTransaction(TransactionRequest dto) {
-        log.info("-------------> {}", dto);
         TransactionLog log = new TransactionLog();
         log.setCommand(dto.getCommand());
         log.setRequestId(dto.getRequestId());
@@ -43,7 +42,7 @@ public class TransactionService {
         log.setAmount(dto.getAmount());
         log.setBankCode(dto.getBankCode());
         transactionLogRepository.save(log);
-//        sendIPNCallback(log);
+        sendIPNCallback(log);
     }
 
     private void sendIPNCallback(TransactionLog transactionLog) {

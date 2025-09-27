@@ -2,7 +2,6 @@ package com.neo.controller;
 
 import com.neo.dto.QueryRequest;
 import com.neo.service.QueryTransactionService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +19,8 @@ public class QueryTransactionController {
     private final QueryTransactionService queryTransactionService;
 
     @PostMapping("/query")
-    public ResponseEntity<Map<String, Object>> queryTransaction(
-            @Valid @RequestBody QueryRequest request,
-            HttpServletRequest httpServletRequest) {
-        // In a real app, you might want a more robust way to get the client IP
-        String ipAddress = httpServletRequest.getRemoteAddr();
-        Map<String, Object> response = queryTransactionService.queryTransaction(request, ipAddress);
+    public ResponseEntity<Map<String, Object>> queryTransaction(@Valid @RequestBody QueryRequest request) {
+        Map<String, Object> response = queryTransactionService.queryTransaction(request);
         return ResponseEntity.ok(response);
     }
 }

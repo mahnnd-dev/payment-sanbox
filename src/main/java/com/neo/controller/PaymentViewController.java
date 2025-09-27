@@ -3,6 +3,7 @@ package com.neo.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neo.dto.NeoPaymentRequest;
+import com.neo.service.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -15,12 +16,17 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class PaymentViewController {
     private final ObjectMapper mapper;
+    private final ValidateService validateService;
 
     // Trang chính (index.html)
     @GetMapping("/payment")
     public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) throws JsonProcessingException {
         // Log để debug
         log.info("Payment request received: {}", request.getNeo_TxnRef());
+        if (!validateService.validateRequestSecureHash(request)) {
+            return "index";
+        }
+
         // Giả lập dữ liệu từ request hoặc query param
         String json = mapper.writeValueAsString(request);
         model.addAttribute("neoPaymentRequest", json);

@@ -2,7 +2,6 @@ package com.neo.controller;
 
 import com.neo.dto.RefundRequest;
 import com.neo.service.RefundTransactionService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +19,8 @@ public class RefundTransactionController {
     private final RefundTransactionService refundTransaction;
 
     @PostMapping("/refund")
-    public ResponseEntity<Map<String, Object>> refundTransaction(
-            @Valid @RequestBody RefundRequest request,
-            HttpServletRequest httpServletRequest) {
-        String ipAddress = httpServletRequest.getRemoteAddr();
-        Map<String, Object> response = refundTransaction.refundTransaction(request, ipAddress);
+    public ResponseEntity<Map<String, Object>> refundTransaction(@Valid @RequestBody RefundRequest request) {
+        Map<String, Object> response = refundTransaction.refundTransaction(request);
         return ResponseEntity.ok(response);
     }
 }
