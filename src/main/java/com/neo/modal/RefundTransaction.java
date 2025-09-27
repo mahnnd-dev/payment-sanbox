@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "refund_transaction")
-public class RefundTransactionEntity {
+public class RefundTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,5 @@ public class RefundTransactionEntity {
     private String responseCode;
     private String responseMessage;
     private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }
 

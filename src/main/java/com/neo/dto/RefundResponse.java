@@ -1,8 +1,12 @@
 package com.neo.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RefundResponse {
     private String neo_ResponseId;       // Mã hệ thống VNPAY sinh
     private String neo_Command;          // refund

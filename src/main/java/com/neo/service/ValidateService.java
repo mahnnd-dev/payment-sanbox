@@ -43,22 +43,24 @@ public class ValidateService {
     }
 
     public boolean validateRequestRefundSecureHash(RefundRequest request) {
-        String requestHash = request.getNeo_SecureHash();
+        String requestHash = request.getNeoSecureHash();
         Map<String, String> fields = new HashMap<>();
-        fields.put("Neo_RequestId", request.getNeo_RequestId());
-        fields.put("Neo_Version", request.getNeo_Version());
-        fields.put("Neo_Command", request.getNeo_Command());
-        fields.put("Neo_TmnCode", request.getNeo_TmnCode());
-        fields.put("Neo_TransactionType", request.getNeo_TransactionType());
-        fields.put("Neo_TxnRef", request.getNeo_TxnRef());
-        fields.put("Neo_Amount", String.valueOf(request.getNeo_Amount()));
-        fields.put("Neo_TransactionNo", String.valueOf(request.getNeo_TransactionNo()));
-        fields.put("Neo_TransactionDate", request.getNeo_TransactionDate());
-        fields.put("Neo_CreateDate", request.getNeo_CreateDate());
-        fields.put("Neo_IpAddr", request.getNeo_IpAddr());
-        fields.put("Neo_OrderInfo", request.getNeo_OrderInfo());
+        fields.put("Neo_RequestId", request.getNeoRequestId());
+        fields.put("Neo_Version", request.getNeoVersion());
+        fields.put("Neo_Command", request.getNeoCommand());
+        fields.put("Neo_TmnCode", request.getNeoTmnCode());
+        fields.put("Neo_TransactionType", request.getNeoTransactionType());
+        fields.put("Neo_TxnRef", request.getNeoTxnRef());
+        fields.put("Neo_Amount", String.valueOf(request.getNeoAmount()));
+        fields.put("Neo_TransactionNo", String.valueOf(request.getNeoTransactionNo()));
+        fields.put("Neo_TransactionDate", request.getNeoTransactionDate());
+        fields.put("Neo_CreateDate", request.getNeoCreateDate());
+        fields.put("Neo_IpAddr", request.getNeoIpAddr());
+        fields.put("Neo_OrderInfo", request.getNeoOrderInfo());
         String hashData = NeoUtils.buildQueryString(fields);
         String calculatedHash = NeoUtils.hmacSHA512(secretKey, hashData);
+        log.info("calculatedHash {}", calculatedHash);
+        log.info("requestHash {}", requestHash);
         if (!calculatedHash.equals(requestHash)) {
             log.info("Invalid secure hash");
             return false;
@@ -67,18 +69,18 @@ public class ValidateService {
     }
 
     public boolean validateRequestQuerySecureHash(QueryRequest request) {
-        String requestHash = request.getNeo_SecureHash();
+        String requestHash = request.getNeoSecureHash();
         Map<String, String> fields = new HashMap<>();
-        fields.put("Neo_RequestId", request.getNeo_RequestId());
-        fields.put("Neo_Version", request.getNeo_Version());
-        fields.put("Neo_Command", request.getNeo_Command());
-        fields.put("Neo_TmnCode", request.getNeo_TmnCode());
-        fields.put("Neo_TxnRef", request.getNeo_TxnRef());
-        fields.put("Neo_OrderInfo", request.getNeo_OrderInfo());
-        fields.put("Neo_TransactionNo", String.valueOf(request.getNeo_TransactionNo()));
-        fields.put("Neo_TransactionDate", request.getNeo_TransactionDate());
-        fields.put("Neo_CreateDate", request.getNeo_CreateDate());
-        fields.put("Neo_IpAddr", request.getNeo_IpAddr());
+        fields.put("Neo_RequestId", request.getNeoRequestId());
+        fields.put("Neo_Version", request.getNeoVersion());
+        fields.put("Neo_Command", request.getNeoCommand());
+        fields.put("Neo_TmnCode", request.getNeoTmnCode());
+        fields.put("Neo_TxnRef", request.getNeoTxnRef());
+        fields.put("Neo_OrderInfo", request.getNeoOrderInfo());
+        fields.put("Neo_TransactionNo", String.valueOf(request.getNeoTransactionNo()));
+        fields.put("Neo_TransactionDate", request.getNeoTransactionDate());
+        fields.put("Neo_CreateDate", request.getNeoCreateDate());
+        fields.put("Neo_IpAddr", request.getNeoIpAddr());
         String hashData = NeoUtils.buildQueryString(fields);
         String calculatedHash = NeoUtils.hmacSHA512(secretKey, hashData);
         if (!calculatedHash.equals(requestHash)) {
