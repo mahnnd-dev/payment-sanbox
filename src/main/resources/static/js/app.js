@@ -1,6 +1,5 @@
 // app.js
 document.addEventListener('DOMContentLoaded', function () {
-
     const banks = [
         {code: 'ABBANK', name: 'ABBANK', logo: '/images/banks/abbank.svg'},
         {code: 'ACB', name: 'ACB', logo: '/images/banks/acb.svg'},
@@ -44,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const paymentMethodsSection = document.getElementById('paymentMethodsSection');
     const cardForm = document.getElementById('cardForm');
+    const paymentData = document.getElementById("paymentData");
 
     function init() {
         loadOrderInfo(); // Load thông tin đơn hàng từ hidden fields
@@ -52,11 +52,26 @@ document.addEventListener('DOMContentLoaded', function () {
         setupCardForm();
         setupNavigation();
         showPaymentMethods(); // Start at the first step
+        loadPaymentResult();
+    }
+
+    function loadPaymentResult() {
+        const element = document.getElementById("paymentResult");
+        if (element != null) {
+            const data = JSON.parse(element.dataset.request);
+            console.log("PaymentResult from server:", data);
+            document.getElementById("statusTitle").textContent = data.status;
+            document.getElementById("statusMessage").textContent = data.message;
+        }
     }
 
     // Load thông tin đơn hàng từ hidden fields hoặc từ server
     function loadOrderInfo() {
-        const request = JSON.parse(document.getElementById("paymentData").dataset.request);
+        if (!paymentData || !paymentData.dataset.request) {
+            console.warn("No paymentData or request dataset found");
+            return;
+        }
+        const request = JSON.parse(paymentData.dataset.request);
         console.log(request);
         // nhà cung cấp
         const tmnCodeElement = request.neo_TmnCode;
@@ -127,6 +142,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function setupBankGrid() {
+        console.log(paymentData);
+        if (!paymentData || !paymentData.dataset.request) {
+            console.warn("No paymentData or request dataset found");
+            return;
+        }
         const domesticBankGrid = document.getElementById('domesticBankGrid');
         if (!domesticBankGrid) return;
 
@@ -458,13 +478,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showPaymentMethods() {
+
         if (paymentMethodsSection) {
             paymentMethodsSection.classList.remove('hidden');
         }
         if (cardForm) {
             cardForm.classList.remove('active');
         }
-
         // Đảm bảo accordion được đóng lại khi quay về
         const domesticCard = document.querySelector('.payment-method[data-method="domestic_card"]');
         if (domesticCard) {

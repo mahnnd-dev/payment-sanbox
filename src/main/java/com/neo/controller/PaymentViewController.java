@@ -3,6 +3,7 @@ package com.neo.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neo.dto.NeoPaymentRequest;
+import com.neo.dto.PaymentResult;
 import com.neo.service.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,14 @@ public class PaymentViewController {
         // Log để debug
         log.info("Payment request received: {}", request.getNeo_TxnRef());
         if (!validateService.validateRequestSecureHash(request)) {
-            return "index";
+            log.warn("Invalid secure hash for transaction: {}", request.getNeo_TxnRef());
+            // Chuyển hướng đến trang payment_result với thông báo lỗi validate
+            PaymentResult paymentResult = new PaymentResult();
+            paymentResult.setStatus("VALIDATE_ERROR");
+            paymentResult.setMessage("Invalid secure hash");
+            paymentResult.setTxnRef(request.getNeo_TxnRef());
+            model.addAttribute("paymentResult", paymentResult);
+            return "payment_result";
         }
 
         // Giả lập dữ liệu từ request hoặc query param
@@ -58,8 +66,8 @@ public class PaymentViewController {
         return "payment_result";
     }
 
-    @GetMapping("/test")
+    @GetMapping("/index")
     public String test() {
-        return "payment";
+        return "redirect:/index.html";
     }
 }
