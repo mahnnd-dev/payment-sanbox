@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
                     // Redirect về home sau khi bấm nút
-                    window.location.href = "/";
+                    window.location.href = "/wellcome";
                 });
             })
             .catch(err => {
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     icon: 'error',
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
-                    window.location.href = "/";
+                    window.location.href = "/wellcome";
                 });
             });
     }

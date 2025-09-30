@@ -66,8 +66,8 @@ public class PaymentViewController {
         return "payment_result";
     }
 
-    @GetMapping("/index")
-    public String test() {
-        return "redirect:/index.html";
+    @GetMapping("/wellcome")
+    public String wellcome() {
+        return "wellcome";
     }
 }

@@ -1,24 +1,24 @@
 neo:
   payment:
+    tmnCode: BXNQA6LP
+    secret-key: D9CFACCBB46B1E60B471FCBB35752F40
     ipn-url: http://localhost:9001/api/neo/call-back
-    max-retry-attempts: '3'
-    secret-key: D5N5N12BRJIUEZSLGHEU4V3ECLXHB0X3
-    tmnCode: A21558QU
     transaction-timeout: '900'
+    max-retry-attempts: '3'
 server:
   port: '8080'
 spring:
   application:
     name: Neo Payment Sanbox
   datasource:
-    driver-class-name: org.postgresql.Driver
-    password: 123456
-    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    password: V0t1ng@2021
-#    url: jdbc:mysql://voting.local.active:3306/voting?useUnicode=yes&characterEncoding=UTF-8
-#    username: voting
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+  #    driver-class-name: com.mysql.cj.jdbc.Driver
+  #    password: V0t1ng@2021
+  #    url: jdbc:mysql://voting.local.active:3306/voting?useUnicode=yes&characterEncoding=UTF-8
+  #    username: voting
   jpa:
     hibernate:
       ddl-auto: update
