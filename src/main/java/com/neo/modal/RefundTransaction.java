@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "refund_transaction")
+@Table(name = "pm_refund_transaction")
 public class RefundTransaction {
 
     @Id

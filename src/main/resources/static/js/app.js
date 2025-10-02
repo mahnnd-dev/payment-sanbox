@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             transactionNo: generateTransactionNo(),
             transactionDate: getDate(),
             ipAddr: formData.orderInfo.ipAddr,
+            returnUrl: formData.orderInfo.returnUrl,
             amount: formData.orderInfo.amount,
             bankCode: formData.orderInfo.bankCode,
             createDate: formData.orderInfo.createDate,
@@ -353,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
                     // Redirect về home sau khi bấm nút
-                    window.location.href = "/wellcome";
+                    window.location.href = data.url;
                 });
             })
             .catch(err => {
@@ -364,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     icon: 'error',
                     confirmButtonText: 'Về trang chủ'
                 }).then(() => {
-                    window.location.href = "/wellcome";
+                    window.location.href = data.url;
                 });
             });
     }

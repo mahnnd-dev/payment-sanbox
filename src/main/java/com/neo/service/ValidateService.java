@@ -5,7 +5,6 @@ import com.neo.dto.QueryRequest;
 import com.neo.dto.RefundRequest;
 import com.neo.util.NeoUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,10 +13,8 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ValidateService {
-    @Value("${neo.payment.secret-key}")
-    private String secretKey;
 
-    public boolean validateRequestSecureHash(NeoPaymentRequest request) {
+    public boolean validateRequestSecureHash(NeoPaymentRequest request,String secretKey) {
         String requestHash = request.getNeo_SecureHash();
         Map<String, String> fields = new HashMap<>();
         fields.put("Neo_Amount", request.getNeo_Amount());
@@ -42,7 +39,7 @@ public class ValidateService {
         return true;
     }
 
-    public boolean validateRequestRefundSecureHash(RefundRequest request) {
+    public boolean validateRequestRefundSecureHash(RefundRequest request,String secretKey) {
         String requestHash = request.getNeoSecureHash();
         Map<String, String> fields = new HashMap<>();
         fields.put("Neo_RequestId", request.getNeoRequestId());
@@ -66,7 +63,7 @@ public class ValidateService {
         return true;
     }
 
-    public boolean validateRequestQuerySecureHash(QueryRequest request) {
+    public boolean validateRequestQuerySecureHash(QueryRequest request,String secretKey) {
         String requestHash = request.getNeoSecureHash();
         Map<String, String> fields = new HashMap<>();
         fields.put("Neo_RequestId", request.getNeoRequestId());

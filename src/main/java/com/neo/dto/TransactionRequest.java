@@ -13,6 +13,7 @@ public class TransactionRequest {
     private String transactionNo;
     private String transactionDate;
     private String ipAddr;
+    private String returnUrl;
     private Long amount;
     private String bankCode;
     private String createDate;

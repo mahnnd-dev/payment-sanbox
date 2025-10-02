@@ -21,7 +21,7 @@ public class TransactionService {
     private final IPNService ipnService;
 
     @Transactional
-    public void saveTransaction(TransactionRequest dto) {
+    public String saveTransaction(TransactionRequest dto) {
         TransactionLog log = new TransactionLog();
         log.setCommand(dto.getCommand());
         log.setRequestId(dto.getRequestId());
@@ -56,6 +56,7 @@ public class TransactionService {
         log.setBankCode(dto.getBankCode());
         transactionLogRepository.save(log);
         sendIPNCallback(log);
+        return dto.getReturnUrl();
     }
 
     private void sendIPNCallback(TransactionLog transactionLog) {
@@ -91,7 +92,10 @@ public class TransactionService {
         }
     }
 
-    private String generateBankTransactionNo(String bankCode) {
+    private static String generateBankTransactionNo(String bankCode) {
+        if (bankCode == null || bankCode.equals("")) {
+            bankCode = "NEOBANK";
+        }
         return bankCode + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
 

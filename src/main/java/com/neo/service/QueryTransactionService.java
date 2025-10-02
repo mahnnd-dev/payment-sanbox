@@ -1,13 +1,14 @@
 package com.neo.service;
 
+import com.neo.cache.PmPartnerCache;
 import com.neo.dto.QueryRequest;
 import com.neo.dto.QueryResponse;
+import com.neo.modal.Partner;
 import com.neo.modal.TransactionLog;
 import com.neo.repository.TransactionLogRepository;
 import com.neo.util.NeoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -16,14 +17,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class QueryTransactionService {
-    @Value("${neo.payment.secret-key}")
-    private String secretKey;
 
     private final TransactionLogRepository logRepository;
     private final ValidateService validateService;
+    private final PmPartnerCache pmPartnerCache;
 
     public QueryResponse queryTransaction(QueryRequest request) {
-        if (!validateService.validateRequestQuerySecureHash(request)) {
+        Partner partner = pmPartnerCache.getObject(request.getNeoTmnCode());
+        if (!validateService.validateRequestQuerySecureHash(request, partner.getSecretKey())) {
             return null;
         }
         TransactionLog transactionLog = logRepository.findAllByTxnRef(request.getNeoTxnRef());
@@ -43,7 +44,7 @@ public class QueryTransactionService {
         queryResponse.setNeoPromotionCode(queryResponse.getNeoPromotionCode());
         queryResponse.setNeoPromotionAmount(queryResponse.getNeoPromotionAmount());
         String hashData = NeoUtils.buildQueryString(request.toMap());
-        String calculatedHash = NeoUtils.hmacSHA512(secretKey, hashData);
+        String calculatedHash = NeoUtils.hmacSHA512(partner.getSecretKey(), hashData);
         queryResponse.setNeoSecureHash(calculatedHash);
         return queryResponse;
     }

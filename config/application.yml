@@ -1,10 +1,6 @@
-neo:
-  payment:
-    tmnCode: BXNQA6LP
-    secret-key: D9CFACCBB46B1E60B471FCBB35752F40
-    ipn-url: http://localhost:9001/api/neo/call-back
-    transaction-timeout: '900'
-    max-retry-attempts: '3'
+app:
+  sql:
+    sync-time: 10000
 server:
   port: '8080'
 spring:

@@ -1,7 +1,9 @@
 package com.neo.service;
 
+import com.neo.cache.PmPartnerCache;
 import com.neo.dto.RefundRequest;
 import com.neo.dto.RefundResponse;
+import com.neo.modal.Partner;
 import com.neo.modal.RefundTransaction;
 import com.neo.modal.TransactionLog;
 import com.neo.repository.RefundTransactionRepository;
@@ -19,9 +21,11 @@ public class RefundTransactionService {
     private final TransactionLogRepository logRepository;
     private final RefundTransactionRepository refundTransactionRepository;
     private final ValidateService validateService;
+    private final PmPartnerCache pmPartnerCache;
 
     public RefundResponse refundTransaction(RefundRequest request) {
-        if (!validateService.validateRequestRefundSecureHash(request)) {
+        Partner partner = pmPartnerCache.getObject(request.getNeoTmnCode());
+        if (!validateService.validateRequestRefundSecureHash(request, partner.getSecretKey())) {
             return null;
         }
         RefundResponse refundResponse = new RefundResponse();

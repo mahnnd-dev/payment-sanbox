@@ -2,8 +2,10 @@ package com.neo.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neo.cache.PmPartnerCache;
 import com.neo.dto.NeoPaymentRequest;
 import com.neo.dto.PaymentResult;
+import com.neo.modal.Partner;
 import com.neo.service.ValidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +17,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class PaymentViewController {
+public class ViewController {
     private final ObjectMapper mapper;
     private final ValidateService validateService;
+    private final PmPartnerCache pmPartnerCache;
 
     // Trang chính (index.html)
     @GetMapping("/payment")
     public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) throws JsonProcessingException {
         // Log để debug
         log.info("Payment request received: {}", request.getNeo_TxnRef());
-        if (!validateService.validateRequestSecureHash(request)) {
+        Partner partner = pmPartnerCache.getObject(request.getNeo_TmnCode());
+        if (!validateService.validateRequestSecureHash(request, partner.getSecretKey())) {
             log.warn("Invalid secure hash for transaction: {}", request.getNeo_TxnRef());
             // Chuyển hướng đến trang payment_result với thông báo lỗi validate
             PaymentResult paymentResult = new PaymentResult();
