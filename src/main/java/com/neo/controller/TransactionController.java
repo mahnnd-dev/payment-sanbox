@@ -4,6 +4,7 @@ import com.neo.dto.*;
 import com.neo.service.QueryTransactionService;
 import com.neo.service.RefundTransactionService;
 import com.neo.service.TransactionService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,7 @@ public class TransactionController {
     public ResponseEntity<?> saveTransaction(@RequestBody TransactionRequest request) {
         String url = transactionService.saveTransaction(request);
         return ResponseEntity.ok().body(
-                Map.of("success", true, "message", "Transaction saved", "status", request.getStatus(), "url", url)
-        );
+                Map.of("success", true, "message", "Transaction saved", "status", request.getStatus(), "url", url));
     }
 
     @PostMapping(value = "/query", produces = MediaType.APPLICATION_JSON_VALUE)

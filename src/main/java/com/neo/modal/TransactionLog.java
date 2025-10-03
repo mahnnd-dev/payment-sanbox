@@ -31,6 +31,7 @@ public class TransactionLog {
     private String createDate;
     @Column(nullable = false)
     private String ipAddr;
+    private String returnUrl;
     private String responseCode;
     @Column(columnDefinition = "VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String responseMessage;

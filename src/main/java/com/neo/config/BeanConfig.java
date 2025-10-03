@@ -3,9 +3,14 @@ package com.neo.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neo.dto.IPNRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -20,4 +25,10 @@ public class BeanConfig {
     public BlockingQueue<IPNRequest> requestBlockingQueue(@Value("${app.queue.capacity:1000}") int queueCapacity) {
         return new LinkedBlockingQueue<>(queueCapacity);
     }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return new ConcurrentMapCacheManager();
+    }
+
 }

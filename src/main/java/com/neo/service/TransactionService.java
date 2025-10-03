@@ -1,9 +1,12 @@
 package com.neo.service;
 
+import com.neo.cache.PmPartnerCache;
 import com.neo.dto.IPNRequest;
 import com.neo.dto.TransactionRequest;
+import com.neo.modal.Partner;
 import com.neo.modal.TransactionLog;
 import com.neo.repository.TransactionLogRepository;
+import com.neo.util.NeoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 @Service
@@ -18,10 +22,12 @@ import java.time.format.DateTimeFormatter;
 public class TransactionService {
 
     private final TransactionLogRepository transactionLogRepository;
-    private final IPNService ipnService;
+    private final PmPartnerCache pmPartnerCache;
+    private final BlockingQueue<IPNRequest> blockingQueue;
 
     @Transactional
     public String saveTransaction(TransactionRequest dto) {
+        log.info("TransactionService saveTransaction: {}", dto);
         TransactionLog log = new TransactionLog();
         log.setCommand(dto.getCommand());
         log.setRequestId(dto.getRequestId());
@@ -32,6 +38,7 @@ public class TransactionService {
         log.setTransactionDate(dto.getTransactionDate());
         log.setCreateDate(dto.getCreateDate());
         log.setIpAddr(dto.getIpAddr());
+        log.setReturnUrl(dto.getReturnUrl());
         log.setResponseCode(dto.getStatus());
         log.setResponseMessage(dto.getStatusMessage());
         log.setTransactionNo(dto.getTransactionNo());
@@ -55,12 +62,15 @@ public class TransactionService {
         log.setAmount(dto.getAmount());
         log.setBankCode(dto.getBankCode());
         transactionLogRepository.save(log);
-        sendIPNCallback(log);
-        return dto.getReturnUrl();
+        return sendIPNCallback(log);
     }
 
-    private void sendIPNCallback(TransactionLog transactionLog) {
+    private String sendIPNCallback(TransactionLog transactionLog) {
         try {
+            Partner partner = pmPartnerCache.getObject(transactionLog.getTmnCode());
+            if (partner == null) {
+                log.info("Partner for TmnCode: {}", transactionLog.getTmnCode());
+            }
             IPNRequest request = new IPNRequest();
             request.setNeo_TmnCode(transactionLog.getTmnCode());
             request.setNeo_Amount(String.valueOf(transactionLog.getAmount()));
@@ -73,22 +83,17 @@ public class TransactionService {
             request.setNeo_ResponseCode(transactionLog.getResponseCode());
             request.setNeo_TransactionStatus(transactionLog.getTransactionStatus());
             request.setNeo_TxnRef(transactionLog.getTxnRef());
-
-            ipnService.sendIPNNotification(request)
-                    .thenAccept(success -> {
-                        if (success) {
-                            log.info("IPN notification sent successfully for txnRef: {}", transactionLog.getTxnRef());
-                        } else {
-                            log.warn("IPN notification failed for txnRef: {}", transactionLog.getTxnRef());
-                        }
-                    })
-                    .exceptionally(throwable -> {
-                        log.error("Error in IPN notification for txnRef: {}", transactionLog.getTxnRef(), throwable);
-                        return null;
-                    });
-
+            blockingQueue.put(request);
+            // Generate secure hash first
+            String hashData = NeoUtils.buildQueryString(request.toMap());
+            String secureHash = NeoUtils.hmacSHA512(partner.getSecretKey(), hashData);
+            hashData += "&Neo_SecureHash=" + secureHash;
+            String returnUrlNew = transactionLog.getReturnUrl() + "?" + hashData;
+            log.info("Return URL: {}", returnUrlNew);
+            return returnUrlNew;
         } catch (Exception e) {
             log.error("Error creating IPN callback for txnRef: {}", transactionLog.getTxnRef(), e);
+            return "/wellcom";
         }
     }
 

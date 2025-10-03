@@ -4,6 +4,7 @@ import com.neo.cache.PmPartnerCache;
 import com.neo.dto.IPNRequest;
 import com.neo.modal.Partner;
 import com.neo.util.NeoUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -20,19 +22,43 @@ public class IPNService {
 
     private final PmPartnerCache pmPartnerCache;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final BlockingQueue<IPNRequest> blockingQueue;
+
+    @PostConstruct
+    public void init() {
+        Thread workerThread = new Thread(this::processQueue, "TransactionQueueWorker");
+        workerThread.setDaemon(true);
+        workerThread.start();
+        log.info("Started transaction queue worker thread");
+    }
+
+    private void processQueue() {
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                IPNRequest queuedRequest = blockingQueue.take();
+                sendIPNNotification(queuedRequest);
+            } catch (InterruptedException e) {
+                log.warn("Transaction queue worker interrupted");
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
 
     @Async
-    public CompletableFuture<Boolean> sendIPNNotification(IPNRequest ipnRequest) {
+    public void sendIPNNotification(IPNRequest ipnRequest) {
         boolean success = false;
         try {
             Partner partner = pmPartnerCache.getObject(ipnRequest.getNeo_TmnCode());
             if (partner == null) {
                 log.info("Partner for TmnCode: {}", ipnRequest.getNeo_TmnCode());
-                return CompletableFuture.completedFuture(false);
+                CompletableFuture.completedFuture(false);
+                return;
             }
             if (partner.getIpnUrl() == null || partner.getIpnUrl().isEmpty()) {
                 log.info("IPN URL not configured, skipping callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
-                return CompletableFuture.completedFuture(false);
+                CompletableFuture.completedFuture(false);
+                return;
             }
             log.info("Sending IPN callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
             // Generate secure hash first
@@ -49,10 +75,10 @@ public class IPNService {
             } else {
                 log.warn("IPN callback failed with HTTP status: {} for txnRef: {}", response.getStatusCode(), ipnRequest.getNeo_TxnRef());
             }
-            return CompletableFuture.completedFuture(success);
+            CompletableFuture.completedFuture(success);
         } catch (Exception e) {
             log.error("Error sending IPN request for txnRef: {}", ipnRequest.getNeo_TxnRef(), e);
-            return CompletableFuture.completedFuture(false);
+            CompletableFuture.completedFuture(false);
         }
     }
 }
