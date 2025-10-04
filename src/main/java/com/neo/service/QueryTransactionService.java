@@ -23,7 +23,7 @@ public class QueryTransactionService {
     private final PmPartnerCache pmPartnerCache;
 
     public QueryResponse queryTransaction(QueryRequest request) {
-        Partner partner = pmPartnerCache.getObject(request.getNeoTmnCode());
+        Partner partner = pmPartnerCache.getPmPartnerByTmnCode(request.getNeoTmnCode());
         if (!validateService.validateRequestQuerySecureHash(request, partner.getSecretKey())) {
             return null;
         }

@@ -24,7 +24,7 @@ public class RefundTransactionService {
     private final PmPartnerCache pmPartnerCache;
 
     public RefundResponse refundTransaction(RefundRequest request) {
-        Partner partner = pmPartnerCache.getObject(request.getNeoTmnCode());
+        Partner partner = pmPartnerCache.getPmPartnerByTmnCode(request.getNeoTmnCode());
         if (!validateService.validateRequestRefundSecureHash(request, partner.getSecretKey())) {
             return null;
         }

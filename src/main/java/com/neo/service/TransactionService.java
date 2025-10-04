@@ -1,8 +1,10 @@
 package com.neo.service;
 
+import com.neo.cache.PmBankerCache;
 import com.neo.cache.PmPartnerCache;
 import com.neo.dto.IPNRequest;
 import com.neo.dto.TransactionRequest;
+import com.neo.modal.Banker;
 import com.neo.modal.Partner;
 import com.neo.modal.TransactionLog;
 import com.neo.repository.TransactionLogRepository;
@@ -12,8 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
@@ -23,7 +27,25 @@ public class TransactionService {
 
     private final TransactionLogRepository transactionLogRepository;
     private final PmPartnerCache pmPartnerCache;
+    private final PmBankerCache pmBankerCache;
     private final BlockingQueue<IPNRequest> blockingQueue;
+
+    public Map<String, Serializable> validateCard(Banker banker) {
+        boolean valid = true;
+        String message = "";
+        if (pmBankerCache.getPmBankerByCardName(banker.getCardNumber()) == null) {
+            valid = false;
+            message = "Mã thẻ không hợp lệ";
+            return Map.of("valid", valid, "message", message);
+        }
+        Banker b = pmBankerCache.getPmBankerByCardName(banker.getCardNumber());
+        if (b != null && !b.getCardHolder().equals(banker.getCardHolder())) {
+            valid = false;
+            message = "Tên chủ thẻ không hợp lệ";
+            return Map.of("valid", valid, "message", message);
+        }
+        return Map.of("valid", valid, "message", "OK");
+    }
 
     @Transactional
     public String saveTransaction(TransactionRequest dto) {
@@ -67,7 +89,7 @@ public class TransactionService {
 
     private String sendIPNCallback(TransactionLog transactionLog) {
         try {
-            Partner partner = pmPartnerCache.getObject(transactionLog.getTmnCode());
+            Partner partner = pmPartnerCache.getPmPartnerByTmnCode(transactionLog.getTmnCode());
             if (partner == null) {
                 log.info("Partner for TmnCode: {}", transactionLog.getTmnCode());
             }

@@ -27,7 +27,7 @@ public class ViewController {
     public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) throws JsonProcessingException {
         // Log để debug
         log.info("Payment request received: {}", request.getNeo_TxnRef());
-        Partner partner = pmPartnerCache.getObject(request.getNeo_TmnCode());
+        Partner partner = pmPartnerCache.getPmPartnerByTmnCode(request.getNeo_TmnCode());
         if (!validateService.validateRequestSecureHash(request, partner.getSecretKey())) {
             log.warn("Invalid secure hash for transaction: {}", request.getNeo_TxnRef());
             // Chuyển hướng đến trang payment_result với thông báo lỗi validate

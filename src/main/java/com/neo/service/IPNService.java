@@ -49,7 +49,7 @@ public class IPNService {
     public void sendIPNNotification(IPNRequest ipnRequest) {
         boolean success = false;
         try {
-            Partner partner = pmPartnerCache.getObject(ipnRequest.getNeo_TmnCode());
+            Partner partner = pmPartnerCache.getPmPartnerByTmnCode(ipnRequest.getNeo_TmnCode());
             if (partner == null) {
                 log.info("Partner for TmnCode: {}", ipnRequest.getNeo_TmnCode());
                 CompletableFuture.completedFuture(false);

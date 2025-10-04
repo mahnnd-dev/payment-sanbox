@@ -25,7 +25,7 @@ spring:
           characterEncoding: utf8mb4
           useUnicode: 'true'
         format_sql: 'true'
-    show-sql: 'true'
+    show-sql: 'false'
   thymeleaf:
     cache: 'false'
     prefix: classpath:/templates/

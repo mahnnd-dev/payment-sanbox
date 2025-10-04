@@ -11,7 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Component
@@ -32,6 +34,7 @@ public class PmBankerCache {
         for (Banker banker : bankers) {
             cache.put(banker.getCardNumber(), banker);
         }
-        log.info("Đã cập nhật cache pmBanker lúc {}", LocalDateTime.now());
+        String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+        log.info("Đã cập nhật cache pmBanker lúc {}, Cache size: {}", formattedDate,((ConcurrentMap<?, ?>) cache.getNativeCache()).size());
     }
 }

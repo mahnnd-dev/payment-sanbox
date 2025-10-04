@@ -30,5 +30,4 @@ public class BeanConfig {
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager();
     }
-
 }

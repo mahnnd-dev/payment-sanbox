@@ -1,31 +1,41 @@
 package com.neo.cache;
 
+import com.neo.modal.Banker;
 import com.neo.modal.Partner;
 import com.neo.repository.PmPartnerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class PmPartnerCache extends CacheSwapService<Partner> {
+public class PmPartnerCache {
     private final PmPartnerRepository repository;
+    private final CacheManager cacheManager;
 
-    @Override
-    protected ConcurrentHashMap<String, Partner> fetchDataFromDB() {
-        ConcurrentHashMap<String, Partner> map = new ConcurrentHashMap<>();
-        List<Partner> partnerConfigList = repository.findAll();
-        for (Partner partnerConfig : partnerConfigList) {
-            map.put(partnerConfig.getTmnCode(), partnerConfig);
-        }
-        return map;
+    @Cacheable("pmPartner")
+    public Partner getPmPartnerByTmnCode(String tmnCode) {
+        return repository.findAllByTmnCode(tmnCode); // chỉ gọi khi cache miss
     }
 
-    @Scheduled(fixedDelayString = "${app.sql.sync-time}")
-    public void forceRefresh() {
-        super.forceRefresh();
+    @Scheduled(fixedRate = 10000)
+    public void refreshPmBankerCache() {
+        List<Partner> partnerList = repository.findAll();
+        Cache cache = cacheManager.getCache("pmPartner");
+        for (Partner partner : partnerList) {
+            cache.put(partner.getTmnCode(), partner);
+        }
+        String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+        log.info("Đã cập nhật cache pmBanker lúc {}, Cache size: {}", formattedDate,((ConcurrentMap<?, ?>) cache.getNativeCache()).size());
     }
 }
