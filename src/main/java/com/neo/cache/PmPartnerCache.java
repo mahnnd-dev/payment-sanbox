@@ -36,6 +36,6 @@ public class PmPartnerCache {
             cache.put(partner.getTmnCode(), partner);
         }
         String formattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-        log.info("Đã cập nhật cache pmBanker lúc {}, Cache size: {}", formattedDate,((ConcurrentMap<?, ?>) cache.getNativeCache()).size());
+        log.info("Đã cập nhật cache pmPartner lúc {}, Cache size: {}", formattedDate,((ConcurrentMap<?, ?>) cache.getNativeCache()).size());
     }
 }
