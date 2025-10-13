@@ -7,6 +7,7 @@ import com.neo.dto.NeoPaymentRequest;
 import com.neo.dto.PaymentResult;
 import com.neo.modal.Partner;
 import com.neo.service.ValidateService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -24,10 +25,11 @@ public class ViewController {
 
     // Trang chính (index.html)
     @GetMapping("/payment")
-    public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model) throws JsonProcessingException {
+    public String paymentPage(@ModelAttribute NeoPaymentRequest request, Model model, HttpServletRequest httpRequest) throws JsonProcessingException {
         // Log để debug
-        log.info("Payment request received: {}", request.getNeo_TxnRef());
+        log.info("Payment request received: {}, domain: {}", request.getNeo_TxnRef(), httpRequest.getServerName());
         Partner partner = pmPartnerCache.getPmPartnerByTmnCode(request.getNeo_TmnCode());
+        request.setDomain(httpRequest.getServerName());
         if (!validateService.validateRequestSecureHash(request, partner.getSecretKey())) {
             log.warn("Invalid secure hash for transaction: {}", request.getNeo_TxnRef());
             // Chuyển hướng đến trang payment_result với thông báo lỗi validate
@@ -38,7 +40,6 @@ public class ViewController {
             model.addAttribute("paymentResult", paymentResult);
             return "payment_result";
         }
-
         // Giả lập dữ liệu từ request hoặc query param
         String json = mapper.writeValueAsString(request);
         model.addAttribute("neoPaymentRequest", json);

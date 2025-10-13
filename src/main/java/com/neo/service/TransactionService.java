@@ -83,6 +83,7 @@ public class TransactionService {
         log.setTransactionStatus(dto.getStatus());
         log.setAmount(dto.getAmount());
         log.setBankCode(dto.getBankCode());
+        log.setDomain(dto.getDomain());
         transactionLogRepository.save(log);
         return sendIPNCallback(log);
     }
@@ -105,6 +106,7 @@ public class TransactionService {
             request.setNeo_ResponseCode(transactionLog.getResponseCode());
             request.setNeo_TransactionStatus(transactionLog.getTransactionStatus());
             request.setNeo_TxnRef(transactionLog.getTxnRef());
+            request.setDomain(transactionLog.getDomain());
             blockingQueue.put(request);
             // Generate secure hash first
             String hashData = NeoUtils.buildQueryString(request.toMap());

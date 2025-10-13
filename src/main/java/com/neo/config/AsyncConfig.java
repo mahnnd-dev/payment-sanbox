@@ -34,10 +34,8 @@ public class AsyncConfig {
         executor.setQueueCapacity(queueCapacity);
         executor.setThreadNamePrefix(threadNamePrefix);
         executor.initialize();
-
         log.info("Async task executor initialized - core: {}, max: {}, queue: {}",
                 corePoolSize, maxPoolSize, queueCapacity);
-
         return executor;
     }
 }

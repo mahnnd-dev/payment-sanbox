@@ -22,5 +22,6 @@ public class NeoPaymentRequest {
     private String Neo_ReturnUrl;
     private String Neo_ExpireDate;
     private String Neo_TxnRef;
+    private String domain;
     private String Neo_SecureHash;
 }

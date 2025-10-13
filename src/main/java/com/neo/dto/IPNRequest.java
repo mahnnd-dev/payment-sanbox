@@ -22,6 +22,7 @@ public class IPNRequest {
     private String Neo_ResponseCode;
     private String Neo_TransactionStatus;
     private String Neo_TxnRef;
+    private String domain;
     private String Neo_SecureHash;
 
     public Map<String, String> toMap() {

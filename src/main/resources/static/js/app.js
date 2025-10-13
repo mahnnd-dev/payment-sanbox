@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     returnUrl: request.neo_ReturnUrl,       // vnp_ReturnUrl
                     expireDate: request.neo_ExpireDate,     // vnp_ExpireDate
                     txnRef: request.neo_TxnRef,             // vnp_TxnRef
+                    domain: request.domain,             // domain
                     secureHash: request.neo_SecureHash      // vnp_SecureHash
                 };
             }
@@ -355,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 transactionDate: getDate(),
                 ipAddr: formData.orderInfo.ipAddr,
                 returnUrl: formData.orderInfo.returnUrl,
+                domain: formData.orderInfo.domain,
                 amount: formData.orderInfo.amount,
                 bankCode: formData.orderInfo.bankCode,
                 createDate: formData.orderInfo.createDate,

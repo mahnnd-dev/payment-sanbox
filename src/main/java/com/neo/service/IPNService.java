@@ -49,6 +49,7 @@ public class IPNService {
     public void sendIPNNotification(IPNRequest ipnRequest) {
         boolean success = false;
         try {
+            String ipnUrl = "";
             Partner partner = pmPartnerCache.getPmPartnerByTmnCode(ipnRequest.getNeo_TmnCode());
             if (partner == null) {
                 log.info("Partner for TmnCode: {}", ipnRequest.getNeo_TmnCode());
@@ -59,13 +60,19 @@ public class IPNService {
                 log.info("IPN URL not configured, skipping callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
                 CompletableFuture.completedFuture(false);
                 return;
+
+            }
+            if (ipnRequest.getDomain().contains("neo.vn")) {
+                ipnUrl = "http://payment.mobifone.vn/paygw/epm-api/neo/neo-ipn";
+            } else {
+                ipnUrl = partner.getIpnUrl();
             }
             log.info("Sending IPN callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
             // Generate secure hash first
             String hashData = NeoUtils.buildQueryString(ipnRequest.toMap());
             String secureHash = NeoUtils.hmacSHA512(partner.getSecretKey(), hashData);
             hashData += "&Neo_SecureHash=" + secureHash;
-            String fullUrl = partner.getIpnUrl() + "?" + hashData;
+            String fullUrl = ipnUrl + "?" + hashData;
             log.info("IPN URL: {}", fullUrl);
             // Send GET request
             ResponseEntity<String> response = restTemplate.getForEntity(fullUrl, String.class);
