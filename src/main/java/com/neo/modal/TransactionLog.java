@@ -17,7 +17,7 @@ public class TransactionLog {
     private String command; // "querydr", "refund"
 
     // --- Các trường chung ---
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 191)
     private String requestId;
     private String version;
     @Column(nullable = false)
@@ -48,6 +48,7 @@ public class TransactionLog {
     // --- Các trường riêng cho REFUND ---
     private String transactionType; // "02", "03"
     private Long refundAmount; // Số tiền hoàn
+    @Column(columnDefinition = "VARCHAR(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
     private String refundReason; // Số tiền hoàn
 
     // --- Các trường riêng cho QUERY ---

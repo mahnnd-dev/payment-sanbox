@@ -95,7 +95,7 @@ public class TransactionService {
             }
             IPNRequest request = new IPNRequest();
             request.setNeo_TmnCode(transactionLog.getTmnCode());
-            request.setNeo_Amount(String.valueOf(transactionLog.getAmount()));
+            request.setNeo_Amount(String.valueOf(transactionLog.getAmount()/100));
             request.setNeo_BankCode(transactionLog.getBankCode());
             request.setNeo_BankTranNo(generateBankTransactionNo(transactionLog.getBankCode()));
             request.setNeo_CardType("ATM");
