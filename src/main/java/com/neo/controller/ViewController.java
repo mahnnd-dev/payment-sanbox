@@ -29,7 +29,7 @@ public class ViewController {
         // Log để debug
         log.info("Payment request received: {}, domain: {}", request.getNeo_TxnRef(), httpRequest.getServerName());
         Partner partner = pmPartnerCache.getPmPartnerByTmnCode(request.getNeo_TmnCode());
-        request.setDomain(httpRequest.getServerName());
+        request.setDomain(getBaseUrl(httpRequest));
         if (!validateService.validateRequestSecureHash(request, partner.getSecretKey())) {
             log.warn("Invalid secure hash for transaction: {}", request.getNeo_TxnRef());
             // Chuyển hướng đến trang payment_result với thông báo lỗi validate
@@ -69,6 +69,12 @@ public class ViewController {
         // Đảm bảo dữ liệu được truyền vào fragment
         model.addAttribute("status", status);
         return "payment_result";
+    }
+
+    public String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme();             // http hoặc https
+        String serverName = request.getServerName();     // example.com
+        return scheme + "://" + serverName;
     }
 
     @GetMapping("/wellcome")

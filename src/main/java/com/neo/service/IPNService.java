@@ -56,16 +56,16 @@ public class IPNService {
                 CompletableFuture.completedFuture(false);
                 return;
             }
-            if (partner.getIpnUrl() == null || partner.getIpnUrl().isEmpty()) {
-                log.info("IPN URL not configured, skipping callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
-                CompletableFuture.completedFuture(false);
-                return;
-
-            }
-            if (ipnRequest.getDomain().contains("neo.vn")) {
+//            if (partner.getIpnUrl() == null || partner.getIpnUrl().isEmpty()) {
+//                log.info("IPN URL not configured, skipping callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
+//                CompletableFuture.completedFuture(false);
+//                return;
+//
+//            }
+            if (ipnRequest.getDomain().contains("sandbox.neo.vn")) {
                 ipnUrl = "http://payment.mobifone.vn/paygw/epm-api/neo/neo-ipn";
             } else {
-                ipnUrl = partner.getIpnUrl();
+                ipnUrl = ipnRequest.getDomain() + "/paygw/epm-api/neo/neo-ipn";
             }
             log.info("Sending IPN callback for txnRef: {}", ipnRequest.getNeo_TxnRef());
             // Generate secure hash first
